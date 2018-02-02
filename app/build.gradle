@@ -57,7 +57,7 @@ android {
         targetSdkVersion 23
         multiDexEnabled true
         versionCode 1500
-        version "1.57-combo-csv2-beta"
+        version "1.59-combo-csv2-beta"
         buildConfigField "String", "VERSION", '"' + version + '"'
         buildConfigField "String", "BUILDVERSION", generateGitBuild()
 
@@ -204,6 +204,8 @@ dependencies {
     compile "com.joanzapata.iconify:android-iconify-fontawesome:2.1.1"
     compile "com.google.android.gms:play-services-wearable:7.5.0"
     compile(name: "android-edittext-validator-v1.3.4-mod", ext: "aar")
+    compile(name: "sightparser-release", ext: "aar")
+
     compile("com.google.android:flexbox:0.3.0") {
         exclude group: "com.android.support"
     }
@@ -227,6 +229,7 @@ dependencies {
     testCompile "org.powermock:powermock-module-junit4-rule:${powermockVersion}"
     testCompile "org.powermock:powermock-module-junit4:${powermockVersion}"
     testCompile "joda-time:joda-time:2.9.4.2"
+    testCompile "com.google.truth:truth:0.39"
 
     androidTestCompile "org.mockito:mockito-core:2.7.22"
     androidTestCompile "com.google.dexmaker:dexmaker:${dexmakerVersion}"
