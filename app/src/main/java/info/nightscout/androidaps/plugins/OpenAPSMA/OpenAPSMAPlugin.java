@@ -206,7 +206,7 @@ public class OpenAPSMAPlugin implements PluginBase, APSInterface {
             targetBg = verifyHardLimits((tempTarget.low + tempTarget.high) / 2, "targetBg", Constants.VERY_HARD_LIMIT_TEMP_TARGET_BG[0], Constants.VERY_HARD_LIMIT_TEMP_TARGET_BG[1]);
         }
 
-        maxIob = verifyHardLimits(maxIob, "maxIob", 0, 7);
+        maxIob = verifyHardLimits(maxIob, "maxIob", 0, 10);
         maxBasal = verifyHardLimits(maxBasal, "max_basal", 0.1, 10);
 
         if (!checkOnlyHardLimits(profile.getDia(), "dia", 2, 7)) return;

@@ -206,7 +206,7 @@ public class OpenAPSAMAPlugin implements PluginBase, APSInterface {
         }
 
 
-        maxIob = verifyHardLimits(maxIob, "maxIob", 0, 7);
+        maxIob = verifyHardLimits(maxIob, "maxIob", 0, 10);
         maxBasal = verifyHardLimits(maxBasal, "max_basal", 0.1, 10);
 
         if (!checkOnlyHardLimits(profile.getDia(), "dia", 2, 7)) return;

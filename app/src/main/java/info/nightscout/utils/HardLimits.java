@@ -8,7 +8,7 @@ import info.nightscout.androidaps.R;
  */
 
 public class HardLimits {
-    final static double MAXBOLUS_ADULT = 17d;
+    final static double MAXBOLUS_ADULT = 25d;
     final static double MAXBOLUS_TEENAGE = 10d;
     final static double MAXBOLUS_CHILD = 5d;
 
