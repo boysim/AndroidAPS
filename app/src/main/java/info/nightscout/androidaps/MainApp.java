@@ -47,7 +47,6 @@ import info.nightscout.androidaps.plugins.OpenAPSMA.OpenAPSMAPlugin;
 import info.nightscout.androidaps.plugins.OpenAPSSMB.OpenAPSSMBPlugin;
 import info.nightscout.androidaps.plugins.Overview.OverviewPlugin;
 import info.nightscout.androidaps.plugins.Persistentnotification.PersistentNotificationPlugin;
-import info.nightscout.androidaps.plugins.ProfileCircadianPercentage.CircadianPercentageProfileFragment;
 import info.nightscout.androidaps.plugins.ProfileLocal.LocalProfilePlugin;
 import info.nightscout.androidaps.plugins.ProfileNS.NSProfilePlugin;
 import info.nightscout.androidaps.plugins.ProfileSimple.SimpleProfilePlugin;
@@ -143,8 +142,6 @@ public class MainApp extends Application {
             pluginsList.add(NSProfilePlugin.getPlugin());
             if (Config.OTHERPROFILES) pluginsList.add(SimpleProfilePlugin.getPlugin());
             if (Config.OTHERPROFILES) pluginsList.add(LocalProfilePlugin.getPlugin());
-            if (Config.OTHERPROFILES)
-                pluginsList.add(CircadianPercentageProfileFragment.getPlugin());
             pluginsList.add(TreatmentsPlugin.getPlugin());
             if (Config.SAFETY) pluginsList.add(SafetyPlugin.getPlugin());
             if (Config.APS) pluginsList.add(ObjectivesPlugin.getPlugin());
@@ -322,6 +319,22 @@ public class MainApp extends Application {
         } else {
             log.error("pluginsList=null");
         }
+        return newList;
+    }
+
+    public static <T> ArrayList<T> getSpecificPluginsListByInterfaceTypeSafe(Class<T> interfaceClass) {
+        ArrayList<T> newList = new ArrayList<>();
+
+        if (pluginsList != null) {
+            for (PluginBase p : pluginsList) {
+                if (p.getClass() != ConfigBuilderPlugin.class
+                        && interfaceClass.isAssignableFrom(p.getClass()))
+                    newList.add((T) p);
+            }
+        } else {
+            log.error("pluginsList=null");
+        }
+
         return newList;
     }
 
