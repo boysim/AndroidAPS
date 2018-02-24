@@ -73,6 +73,7 @@ import info.nightscout.androidaps.plugins.XDripStatusline.StatuslinePlugin;
 import info.nightscout.androidaps.receivers.DataReceiver;
 import info.nightscout.androidaps.receivers.KeepAliveReceiver;
 import info.nightscout.androidaps.receivers.NSAlarmReceiver;
+import info.nightscout.utils.FabricPrivacy;
 import info.nightscout.utils.NSUpload;
 import io.fabric.sdk.android.Fabric;
 
@@ -98,17 +99,25 @@ public class MainApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Fabric.with(this, new Crashlytics());
-        Fabric.with(this, new Answers());
+        sInstance = this;
+        sResources = getResources();
+
+        try {
+            if (FabricPrivacy.fabricEnabled()) {
+                Fabric.with(this, new Crashlytics());
+                Fabric.with(this, new Answers());
+                Crashlytics.setString("BUILDVERSION", BuildConfig.BUILDVERSION);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("ANDROIDAPS", "Error with Fabric init! " + e);
+        }
+
         JodaTimeAndroid.init(this);
-        Crashlytics.setString("BUILDVERSION", BuildConfig.BUILDVERSION);
+
         log.info("Version: " + BuildConfig.VERSION_NAME);
         log.info("BuildVersion: " + BuildConfig.BUILDVERSION);
 
         sBus = Config.logEvents ? new LoggingBus(ThreadEnforcer.ANY) : new Bus(ThreadEnforcer.ANY);
-
-        sInstance = this;
-        sResources = getResources();
 
         registerLocalBroadcastReceiver();
 
@@ -169,15 +178,15 @@ public class MainApp extends Application {
         }
         NSUpload.uploadAppStart();
         if (Config.NSCLIENT)
-            Answers.getInstance().logCustom(new CustomEvent("AppStart-NSClient"));
+            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-NSClient"));
         else if (Config.G5UPLOADER)
-            Answers.getInstance().logCustom(new CustomEvent("AppStart-G5Uploader"));
+            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-G5Uploader"));
         else if (Config.PUMPCONTROL)
-            Answers.getInstance().logCustom(new CustomEvent("AppStart-PumpControl"));
+            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-PumpControl"));
         else if (MainApp.getConfigBuilder().isClosedModeEnabled())
-            Answers.getInstance().logCustom(new CustomEvent("AppStart-ClosedLoop"));
+            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-ClosedLoop"));
         else
-            Answers.getInstance().logCustom(new CustomEvent("AppStart-OpenLoop"));
+            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-OpenLoop"));
 
         new Thread(new Runnable() {
             @Override
@@ -319,22 +328,6 @@ public class MainApp extends Application {
         } else {
             log.error("pluginsList=null");
         }
-        return newList;
-    }
-
-    public static <T> ArrayList<T> getSpecificPluginsListByInterfaceTypeSafe(Class<T> interfaceClass) {
-        ArrayList<T> newList = new ArrayList<>();
-
-        if (pluginsList != null) {
-            for (PluginBase p : pluginsList) {
-                if (p.getClass() != ConfigBuilderPlugin.class
-                        && interfaceClass.isAssignableFrom(p.getClass()))
-                    newList.add((T) p);
-            }
-        } else {
-            log.error("pluginsList=null");
-        }
-
         return newList;
     }
 

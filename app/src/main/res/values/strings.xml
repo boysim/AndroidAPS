@@ -212,6 +212,8 @@
     <string name="ro_lang">Romanian</string>
     <string name="ru_lang">Russian</string>
     <string name="sv_lang">Swedish</string>
+    <string name="fr_lang">French</string>
+    <string name="zh_lang">Chinese</string>
     <string name="openapsma_maxbasal_title">Max U/hr a Temp Basal can be set to</string>
     <string name="openapsma_maxbasal_summary">This value is called max basal in OpenAPS context</string>
     <string name="openapsma_maxiob_title">Maximum basal IOB OpenAPS can deliver [U]</string>
@@ -336,7 +338,7 @@
     <string name="smscommunicator_basalstopreplywithcode" formatted="false">To stop temp basal reply with code %s</string>
     <string name="smscommunicator_tempbasalcanceled">Temp basal canceled</string>
     <string name="smscommunicator_tempbasalcancelfailed">Canceling temp basal failed</string>
-    <string name="smscommunicator_unknowncommand">Uknonwn command or wrong reply</string>
+    <string name="smscommunicator_unknowncommand">Uknown command or wrong reply</string>
 
     <string name="quickwizard">QuickWizard</string>
     <string name="quickwizardsettings">QuickWizard settings</string>
@@ -594,7 +596,7 @@
     <string name="basalshortlabel">BAS</string>
     <string name="virtualpump_firmware_label">Firmware</string>
     <string name="pump_lastconnection_label">Last connection</string>
-    <string name="danar_bluetooth_status">Bluetooh status</string>
+    <string name="danar_bluetooth_status">Bluetooth status</string>
     <string name="nav_about">About</string>
     <string name="smscommunicator_missingsmspermission">Missing SMS permission</string>
     <string name="dev">DEV</string>
@@ -925,6 +927,12 @@
     <string name="day">day</string>
     <string name="week">week</string>
     <string name="time_plural">s</string>
+    <string name="insight_keepalive_format_string">%ds expires %s</string>
+    <string name="insight_keep_alive_status">Keep-alive status</string>
+    <string name="statistics">Statistics</string>
+    <string name="connect_preemptively">Connect preemptively</string>
+    <string name="automatically_connect_when">Automatically connect when AndroidAPS screens are opened, before any pump command is requested, to reduce connection delay</string>
+    <string name="not_recommended_due_to_battery_drain">Not recommended due to battery drain</string>
     <string name="key_enableSMB_always" translatable="false">enableSMB_always</string>
     <string name="key_enableSMB_with_COB" translatable="false">enableSMB_with_COB</string>
     <string name="key_enableSMB_with_temptarget" translatable="false">enableSMB_with_temptarget</string>
@@ -950,5 +958,14 @@
     <string name="ns_create_announcements_from_errors_summary">Create Nightscout announcement for error dialogs and local alerts (also viewable in Careportal under Treatments)</string>
     <string name="combo_suspious_bolus_time">Time/date of the delivered bolus on pump seems wrong, IOB is likely incorrect. Please check pump time/date.</string>
     <string name="profileswitch_ismissing">ProfileSwitch missing. Please do a profile switch or press \"Activate Profile\" in the LocalProfile.</string>
+    <string name="wear_notifysmb_title">Notify on SMB</string>
+    <string name="wear_notifysmb_summary">Show SMB on the watch like a standard bolus.</string>
+    <string name="key_ns_create_announcements_from_errors">ns_create_announcements_from_errors</string>
+    <string name="ns_create_announcements_from_errors_title">Create announcements from errors</string>
+    <string name="ns_create_announcements_from_errors_summary">Create Nightscout announcement for error dialogs and local alerts (also viewable in Careportal under Treatments)</string>
+    <string name="dexcomG5_shortname" translatable="false">G5</string>
+    <string name="data_choices">Data Choices</string>
+    <string name="fabric_upload">Fabric Upload</string>
+    <string name="allow_automated_crash_reporting">Allow automated crash reporting and feature usage data to be sent to the developers via the fabric.io service.</string>
 </resources>
 
