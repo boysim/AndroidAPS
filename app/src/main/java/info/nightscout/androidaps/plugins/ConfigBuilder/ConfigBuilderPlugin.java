@@ -50,6 +50,7 @@ import info.nightscout.androidaps.queue.Callback;
 import info.nightscout.androidaps.queue.CommandQueue;
 import info.nightscout.utils.NSUpload;
 import info.nightscout.utils.SP;
+import info.nightscout.utils.ToastUtils;
 
 /**
  * Created by mike on 05.08.2016.
@@ -264,7 +265,7 @@ public class ConfigBuilderPlugin implements PluginBase, ConstraintsInterface, Tr
         activePump = (PumpInterface) getTheOneEnabledInArray(pluginsInCategory, PluginBase.PUMP);
         if (activePump == null)
             activePump = VirtualPumpPlugin.getPlugin(); // for NSClient build
-        this.setFragmentVisiblities(((PluginBase)activePump).getName(), pluginsInCategory, PluginBase.PUMP);
+        this.setFragmentVisiblities(((PluginBase) activePump).getName(), pluginsInCategory, PluginBase.PUMP);
 
         // PluginBase.LOOP
         activeLoop = this.determineActivePlugin(PluginBase.LOOP);
@@ -300,7 +301,7 @@ public class ConfigBuilderPlugin implements PluginBase, ConstraintsInterface, Tr
      * disables the visibility for all fragments of Plugins in the given pluginsInCategory
      * with the given PluginType which are not equally named to the Plugin implementing the
      * given Plugin Interface.
-     *
+     * <p>
      * TODO we are casting an interface to PluginBase, which seems to be rather odd, since
      * TODO the interface is not implementing PluginBase (this is just avoiding errors through
      * TODO conventions.
@@ -315,7 +316,7 @@ public class ConfigBuilderPlugin implements PluginBase, ConstraintsInterface, Tr
         T activePlugin = (T) getTheOneEnabledInArray(pluginsInCategory, pluginType);
 
         if (activePlugin != null) {
-            this.setFragmentVisiblities(((PluginBase)activePlugin).getName(),
+            this.setFragmentVisiblities(((PluginBase) activePlugin).getName(),
                     pluginsInCategory, pluginType);
         }
 
@@ -745,14 +746,17 @@ public class ConfigBuilderPlugin implements PluginBase, ConstraintsInterface, Tr
     }
 
     public String getProfileName(long time, boolean customized) {
-        ProfileSwitch profileSwitch = getProfileSwitchFromHistory(time);
-        if (profileSwitch != null) {
-            if (profileSwitch.profileJson != null) {
-                return customized ? profileSwitch.getCustomizedName() : profileSwitch.profileName;
-            } else {
-                Profile profile = activeProfile.getProfile().getSpecificProfile(profileSwitch.profileName);
-                if (profile != null)
-                    return profileSwitch.profileName;
+        boolean ignoreProfileSwitchEvents = SP.getBoolean(R.string.key_do_not_track_profile_switch, false);
+        if (!ignoreProfileSwitchEvents) {
+            ProfileSwitch profileSwitch = getProfileSwitchFromHistory(time);
+            if (profileSwitch != null) {
+                if (profileSwitch.profileJson != null) {
+                    return customized ? profileSwitch.getCustomizedName() : profileSwitch.profileName;
+                } else {
+                    Profile profile = activeProfile.getProfile().getSpecificProfile(profileSwitch.profileName);
+                    if (profile != null)
+                        return profileSwitch.profileName;
+                }
             }
         }
         // Unable to determine profile, failover to default
@@ -812,5 +816,41 @@ public class ConfigBuilderPlugin implements PluginBase, ConstraintsInterface, Tr
             log.error("Unhandled exception", e);
         }
         return null;
+    }
+
+    public void disconnectPump(int durationInMinutes) {
+        getActiveLoop().disconnectTo(System.currentTimeMillis() + durationInMinutes * 60 * 1000L);
+        getCommandQueue().tempBasalPercent(0, durationInMinutes, true, new Callback() {
+            @Override
+            public void run() {
+                if (!result.success) {
+                    ToastUtils.showToastInUiThread(MainApp.instance().getApplicationContext(), MainApp.gs(R.string.tempbasaldeliveryerror));
+                }
+            }
+        });
+        if (getActivePump().getPumpDescription().isExtendedBolusCapable && isInHistoryExtendedBoluslInProgress()) {
+            getCommandQueue().cancelExtended(new Callback() {
+                @Override
+                public void run() {
+                    if (!result.success) {
+                        ToastUtils.showToastInUiThread(MainApp.instance().getApplicationContext(), MainApp.gs(R.string.extendedbolusdeliveryerror));
+                    }
+                }
+            });
+        }
+        NSUpload.uploadOpenAPSOffline(durationInMinutes);
+    }
+
+    public void suspendLoop(int durationInMinutes) {
+        getActiveLoop().suspendTo(System.currentTimeMillis() + durationInMinutes * 60 * 1000);
+        getCommandQueue().cancelTempBasal(true, new Callback() {
+            @Override
+            public void run() {
+                if (!result.success) {
+                    ToastUtils.showToastInUiThread(MainApp.instance().getApplicationContext(), MainApp.gs(R.string.tempbasaldeliveryerror));
+                }
+            }
+        });
+        NSUpload.uploadOpenAPSOffline(durationInMinutes);
     }
 }

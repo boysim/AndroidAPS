@@ -116,7 +116,7 @@
     <string name="overview_calculator_label">Kalkulačka</string>
     <string name="overview_newtempbasal_basalpercent">Hodnota bazálu [%]</string>
     <string name="overview_newtempbasal_percent_label">% (100% = současný)</string>
-    <string name="overview_bolus_label">Bolus</string>
+    <string name="overview_treatment_label">Bolus</string>
     <string name="profileviewer">NS profil</string>
     <string name="objectives_pumpstatusavailableinns">Stav pumpy dostupný v NS</string>
     <string name="rate">Hodnota</string>
@@ -494,6 +494,7 @@
     <string name="disconnectpumpfor10h">Odpojit pumpu na 10 h</string>
     <string name="disconnectpumpfor1h">Odpojit pumpu na 1 h</string>
     <string name="disconnectpumpfor2h">Odpojit pumpu na 2 h</string>
+    <string name="disconnectpumpfor15m">Odpojit pumpu na 15 min</string>
     <string name="disconnectpumpfor30m">Odpojit pumpu na 30 min</string>
     <string name="disconnectpumpfor3h">Odpojit pumpu na 3 h</string>
     <string name="enableloop">Povolit smyčku</string>

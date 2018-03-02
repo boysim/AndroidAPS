@@ -113,7 +113,7 @@
     <string name="overview_newtempbasal_basalpercent">Αξία Βασικού[%]</string>
     <string name="overview_newtempbasal_percent_label">% (100% = τρέχον)</string>
     <string name="setbasalquestion">Αποδοχή νέου Προσ.Ρυθμ:</string>
-    <string name="overview_bolus_label">Bolus</string>
+    <string name="overview_treatment_label">Bolus</string>
     <string name="overview_calculator_label">Υπολογιστής</string>
     <string name="constraintapllied">Εφαρμοσμένοι Περιορισμοί!</string>
     <string name="confirmation">Αποδοχή</string>
@@ -509,6 +509,7 @@
     <string name="suspendloopfor2h">Κύκλωμα σε παύση για 2h</string>
     <string name="suspendloopfor3h">Κύκλωμα σε παύση για 3h</string>
     <string name="suspendloopfor10h">Κύκλωμα σε παύση για 10h</string>
+    <string name="disconnectpumpfor15m">Αποσύνδεση αντλίας για 15 λεπτά</string>
     <string name="disconnectpumpfor30m">Αποσύνδεση αντλίας για 30 λεπτά</string>
     <string name="disconnectpumpfor1h">Αποσύνδεση αντλίας για 1h</string>
     <string name="disconnectpumpfor2h">Αποσύνδεση αντλίας για 2h</string>

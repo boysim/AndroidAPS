@@ -141,7 +141,7 @@ public class MainApp extends Application {
             if (Config.DANAR) pluginsList.add(DanaRSPlugin.getPlugin());
             if (Config.COMBO) pluginsList.add(ComboPlugin.getPlugin());
             pluginsList.add(CareportalPlugin.getPlugin());
-            if (Config.DANAR) pluginsList.add(InsightPumpPlugin.getPlugin());
+            // if (Config.DANAR) pluginsList.add(InsightPumpPlugin.getPlugin()); // <-- Enable Insight plugin here
             if (Config.MDI) pluginsList.add(MDIPlugin.getPlugin());
             if (Config.VIRTUALPUMP) pluginsList.add(VirtualPumpPlugin.getPlugin());
             if (Config.APS) pluginsList.add(LoopPlugin.getPlugin());

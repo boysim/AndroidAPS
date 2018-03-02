@@ -230,7 +230,6 @@
     <string name="icmissing">KH ratio ontbreekt in profieel. Standaard waarde toegepast</string>
     <string name="import_from">Importeer instellingen van</string>
     <string name="initializing">Initialisering</string>
-    <string name="openapsama_link_to_preferncejson_doc">http://openaps.readthedocs.io/en/latest/docs/walkthrough/phase-3/beyond-low-glucose-suspend.html</string>
     <string name="danar_history_bolus">Bulossen</string>
     <string name="danar_history_carbohydrates">Koolhydraten</string>
     <string name="danar_history_errors">Storing</string>
@@ -250,6 +249,7 @@
     <string name="disconnectpumpfor10h">Verbreek verbinding 10u met pomp</string>
     <string name="disconnectpumpfor1h">Verbreek verbinding 1u met pomp</string>
     <string name="disconnectpumpfor2h">Verbreek verbinding 2u met pomp</string>
+    <string name="disconnectpumpfor15m">Verbreek verbinding 15min met pomp</string>
     <string name="disconnectpumpfor30m">Verbreek verbinding 30min met pomp</string>
     <string name="disconnectpumpfor3h">Verbreek verbinding 3u met pomp</string>
     <string name="dismiss">NEGEER</string>
@@ -409,7 +409,7 @@
     <string name="othersettings_title">Andere</string>
     <string name="openapsma_nopump">Geen pomp beschikbaar</string>
     <string name="overview">Overzicht</string>
-    <string name="overview_bolus_label">Bolus</string>
+    <string name="overview_treatment_label">Bolus</string>
     <string name="overview_bolusprogress_delivered">Toegediend</string>
     <string name="overview_bolusprogress_goingtodeliver" formatted="false">Er worden %.2fE toegediend</string>
     <string name="overview_bolusprogress_stop">Stop</string>
