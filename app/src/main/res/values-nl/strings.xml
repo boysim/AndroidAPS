@@ -780,7 +780,6 @@
     <string name="careportal_combobolus">Combinatie-Bolus</string>
     <string name="pump_basebasalrate">%.2f E/u</string>
     <string name="hoursago">%.1fu geleden</string>
-    <string name="bolusstopped">Bolus gestopt</string>
     <string name="bolusstopping">Stoppen van bolus</string>
     <string name="combo_actvity_reading_basal_profile">Basaal profiel wordt gelezen</string>
     <string name="basalprofilenotaligned">Basale patroon niet geschikt op complete uren: %s</string>
@@ -802,5 +801,8 @@
     <string name="ns_create_announcements_from_errors_summary">Creëer een Nightscout melding voor storingen en lokale waarschuwingen (ook zichtbaar inder het Careportal en behandelingen)</string>
     <string name="combo_suspious_bolus_time">Datum/tijd van de geleverde bolus op de pomp is niet correct, IOB is waarschijnlijk foutief. Controleer aub de datum/tijd op de pomp.</string>
     <string name="profileswitch_ismissing">Profiel wissel ontbreekt. Doe aub een profiel wissel of duw op Activeer Profiel in het Lokale profiel.</string>
+    <string name="nav_historybrowser">Historiek bekijken</string>
+    <string name="overview_bolus_label">Bolus</string>
+
 </resources>
 
