@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 
 import org.slf4j.Logger;
@@ -33,6 +32,7 @@ import info.nightscout.androidaps.db.CareportalEvent;
 import info.nightscout.androidaps.db.Source;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.queue.Callback;
+import info.nightscout.utils.FabricPrivacy;
 import info.nightscout.utils.NumberPicker;
 import info.nightscout.utils.SafeParse;
 import info.nightscout.utils.ToastUtils;
@@ -175,7 +175,7 @@ public class NewTreatmentDialog extends DialogFragment implements OnClickListene
                                     } else {
                                         MainApp.getConfigBuilder().addToHistoryTreatment(detailedBolusInfo);
                                     }
-                                    Answers.getInstance().logCustom(new CustomEvent("Bolus"));
+                                    FabricPrivacy.getInstance().logCustom(new CustomEvent("Bolus"));
                                 }
                             }
                         }
