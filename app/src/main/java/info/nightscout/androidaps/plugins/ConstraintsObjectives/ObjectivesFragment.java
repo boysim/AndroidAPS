@@ -67,22 +67,18 @@ public class ObjectivesFragment extends SubscriberFragment {
             holder.startButton.setTag(o);
             holder.verifyButton.setTag(o);
 
-            holder.startButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    ObjectivesPlugin.Objective o = (ObjectivesPlugin.Objective) v.getTag();
-                    o.started = new Date();
+            holder.startButton.setOnClickListener(v -> {
+                ObjectivesPlugin.Objective o1 = (ObjectivesPlugin.Objective) v.getTag();
+                o1.started = new Date();
+                updateGUI();
+                ObjectivesPlugin.saveProgress();
+            });
+            holder.verifyButton.setOnClickListener(v -> {
+                ObjectivesPlugin.Objective o12 = (ObjectivesPlugin.Objective) v.getTag();
+                if (ObjectivesPlugin.getPlugin().requirementsMet(o12.num).done || enableFake.isChecked()) {
+                    o12.accomplished = new Date();
                     updateGUI();
                     ObjectivesPlugin.saveProgress();
-                }
-            });
-            holder.verifyButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    ObjectivesPlugin.Objective o = (ObjectivesPlugin.Objective) v.getTag();
-                    if (ObjectivesPlugin.getPlugin().requirementsMet(o.num).done || enableFake.isChecked()) {
-                        o.accomplished = new Date();
-                        updateGUI();
-                        ObjectivesPlugin.saveProgress();
-                    }
                 }
             });
 
@@ -255,6 +251,7 @@ public class ObjectivesFragment extends SubscriberFragment {
             ObjectivesPlugin.objectives.get(3).gate = MainApp.gs(R.string.objectives_3_gate);
             ObjectivesPlugin.objectives.get(4).gate = MainApp.gs(R.string.objectives_4_gate);
             ObjectivesPlugin.objectives.get(5).gate = MainApp.gs(R.string.objectives_5_gate);
+            ObjectivesPlugin.objectives.get(7).gate = MainApp.gs(R.string.objectives_7_gate);
 
             updateGUI();
 

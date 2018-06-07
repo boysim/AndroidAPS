@@ -672,12 +672,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
     private void onClickAcceptTemp() {
         Profile profile = MainApp.getConfigBuilder().getProfile();
+        Context context = getContext();
+
+        if (context == null) return;
 
         if (LoopPlugin.getPlugin().isEnabled(PluginType.LOOP) && profile != null) {
             LoopPlugin.getPlugin().invoke("Accept temp button", false);
             final LoopPlugin.LastRun finalLastRun = LoopPlugin.lastRun;
             if (finalLastRun != null && finalLastRun.lastAPSRun != null && finalLastRun.constraintsProcessed.isChangeRequested()) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setTitle(MainApp.gs(R.string.confirmation));
                 builder.setMessage(MainApp.gs(R.string.setbasalquestion) + "\n" + finalLastRun.constraintsProcessed);
                 builder.setPositiveButton(MainApp.gs(R.string.ok), (dialog, id) -> {
@@ -981,16 +984,19 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (timeView != null) { //must not exists
             timeView.setText(DateUtil.timeString(new Date()));
         }
+
+        updateNotifications();
+
+        pumpStatusLayout.setVisibility(View.GONE);
+        loopStatusLayout.setVisibility(View.GONE);
+
         if (!MainApp.getConfigBuilder().isProfileValid("Overview")) {
             pumpStatusView.setText(R.string.noprofileset);
             pumpStatusLayout.setVisibility(View.VISIBLE);
-            loopStatusLayout.setVisibility(View.GONE);
             return;
         }
-        pumpStatusLayout.setVisibility(View.GONE);
         loopStatusLayout.setVisibility(View.VISIBLE);
 
-        updateNotifications();
         CareportalFragment.updateAge(getActivity(), sage, iage, cage, pbage);
         BgReading actualBG = DatabaseHelper.actualBg();
         BgReading lastBG = DatabaseHelper.lastBg();
