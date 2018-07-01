@@ -2,10 +2,13 @@ package info.nightscout.androidaps.plugins.PumpDanaRS;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AlertDialog;
 
 import com.squareup.otto.Subscribe;
 
@@ -26,8 +29,6 @@ import info.nightscout.androidaps.data.ProfileStore;
 import info.nightscout.androidaps.data.PumpEnactResult;
 import info.nightscout.androidaps.db.ExtendedBolus;
 import info.nightscout.androidaps.db.TemporaryBasal;
-import info.nightscout.androidaps.plugins.PumpDanaRS.comm.DanaRS_Packet_Bolus_Set_Step_Bolus_Start;
-import info.nightscout.androidaps.plugins.Treatments.Treatment;
 import info.nightscout.androidaps.events.EventAppExit;
 import info.nightscout.androidaps.interfaces.Constraint;
 import info.nightscout.androidaps.interfaces.ConstraintsInterface;
@@ -38,6 +39,7 @@ import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.ProfileInterface;
 import info.nightscout.androidaps.interfaces.PumpDescription;
 import info.nightscout.androidaps.interfaces.PumpInterface;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderFragment;
 import info.nightscout.androidaps.plugins.ConfigBuilder.DetailedBolusInfoStorage;
 import info.nightscout.androidaps.plugins.Overview.events.EventDismissNotification;
 import info.nightscout.androidaps.plugins.Overview.events.EventNewNotification;
@@ -46,8 +48,10 @@ import info.nightscout.androidaps.plugins.ProfileNS.NSProfilePlugin;
 import info.nightscout.androidaps.plugins.PumpDanaR.DanaRFragment;
 import info.nightscout.androidaps.plugins.PumpDanaR.DanaRPump;
 import info.nightscout.androidaps.plugins.PumpDanaR.comm.RecordTypes;
+import info.nightscout.androidaps.plugins.PumpDanaRS.comm.DanaRS_Packet_Bolus_Set_Step_Bolus_Start;
 import info.nightscout.androidaps.plugins.PumpDanaRS.events.EventDanaRSDeviceChange;
 import info.nightscout.androidaps.plugins.PumpDanaRS.services.DanaRSService;
+import info.nightscout.androidaps.plugins.Treatments.Treatment;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.utils.DateUtil;
 import info.nightscout.utils.DecimalFormatter;
@@ -83,6 +87,7 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
                 .pluginName(R.string.danarspump)
                 .shortName(R.string.danarspump_shortname)
                 .preferencesId(R.xml.pref_danars)
+                .description(R.string.description_pump_dana_rs)
         );
 
         pumpDescription.isBolusCapable = true;
@@ -144,6 +149,31 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
         context.unbindService(mConnection);
 
         MainApp.bus().unregister(this);
+    }
+
+    @Override
+    public void switchAllowed(ConfigBuilderFragment.PluginViewHolder.PluginSwitcher pluginSwitcher, FragmentActivity context) {
+        boolean allowHardwarePump = SP.getBoolean("allow_hardware_pump", false);
+        if (allowHardwarePump || context == null){
+            pluginSwitcher.invoke();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage(R.string.allow_hardware_pump_text)
+                    .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            pluginSwitcher.invoke();
+                            SP.putBoolean("allow_hardware_pump", true);
+                            log.debug("First time HW pump allowed!");
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            pluginSwitcher.cancel();
+                            log.debug("User does not allow switching to HW pump!");
+                        }
+                    });
+            builder.create().show();
+        }
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -221,6 +251,11 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
     @Override
     public PumpEnactResult loadEvents() {
         return danaRSService.loadEvents();
+    }
+
+    @Override
+    public PumpEnactResult setUserOptions() {
+        return danaRSService.setUserSettings();
     }
 
     // Constraints interface
@@ -480,8 +515,12 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
             // Convert duration from minutes to hours
             if (Config.logPumpActions)
                 log.debug("setTempBasalAbsolute: Setting temp basal " + percentRate + "% for " + durationInMinutes + " mins (doLowTemp || doHighTemp)");
-            // use special APS temp basal call ... 100+/15min .... 100-/30min
-            result = setHighTempBasalPercent(percentRate);
+            if (percentRate == 0 && durationInMinutes > 30) {
+                result = setTempBasalPercent(percentRate, durationInMinutes, profile, false);
+            } else {
+                // use special APS temp basal call ... 100+/15min .... 100-/30min
+                result = setHighTempBasalPercent(percentRate);
+            }
             if (!result.success) {
                 log.error("setTempBasalAbsolute: Failed to set hightemp basal");
                 return result;
@@ -758,4 +797,5 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
     public PumpEnactResult loadTDDs() {
         return loadHistory(RecordTypes.RECORD_TYPE_DAILY);
     }
+
 }

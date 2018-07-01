@@ -49,7 +49,7 @@ public class SafetyPlugin extends PluginBase implements ConstraintsInterface {
      * Constraints interface
      **/
     @Override
-    public Constraint<Boolean> isLoopInvokationAllowed(Constraint<Boolean> value) {
+    public Constraint<Boolean> isLoopInvocationAllowed(Constraint<Boolean> value) {
         if (!ConfigBuilderPlugin.getActivePump().getPumpDescription().isTempBasalCapable)
             value.set(false, MainApp.gs(R.string.pumpisnottempbasalcapable), this);
         return value;
@@ -89,17 +89,6 @@ public class SafetyPlugin extends PluginBase implements ConstraintsInterface {
         Constraint<Boolean> closedLoop = constraintChecker.isClosedLoopAllowed();
         if (!closedLoop.value())
             value.set(false, MainApp.gs(R.string.smbnotallowedinopenloopmode), this);
-        return value;
-    }
-
-    @Override
-    public Constraint<Boolean> isAdvancedFilteringEnabled(Constraint<Boolean> value) {
-        BgSourceInterface bgSource = MainApp.getConfigBuilder().getActiveBgSource();
-
-        if (bgSource != null) {
-            if (!bgSource.advancedFilteringSupported())
-                value.set(false, MainApp.gs(R.string.smbalwaysdisabled), this);
-        }
         return value;
     }
 
