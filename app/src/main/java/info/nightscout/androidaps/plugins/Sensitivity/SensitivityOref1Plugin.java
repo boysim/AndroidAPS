@@ -15,23 +15,19 @@ import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.Profile;
 import info.nightscout.androidaps.db.CareportalEvent;
-import info.nightscout.androidaps.interfaces.PluginBase;
 import info.nightscout.androidaps.interfaces.PluginDescription;
 import info.nightscout.androidaps.interfaces.PluginType;
-import info.nightscout.androidaps.interfaces.SensitivityInterface;
 import info.nightscout.androidaps.plugins.IobCobCalculator.AutosensData;
 import info.nightscout.androidaps.plugins.IobCobCalculator.AutosensResult;
 import info.nightscout.androidaps.plugins.IobCobCalculator.IobCobCalculatorPlugin;
-import info.nightscout.utils.Round;
-import info.nightscout.utils.SP;
-import info.nightscout.utils.SafeParse;
+import info.nightscout.utils.DateUtil;
 
 /**
  * Created by mike on 19.06.2018.
  */
 
 public class SensitivityOref1Plugin extends AbstractSensitivityPlugin {
-    private static Logger log = LoggerFactory.getLogger(IobCobCalculatorPlugin.class);
+    private static Logger log = LoggerFactory.getLogger("AUTOSENS");
 
     static SensitivityOref1Plugin plugin = null;
 
@@ -53,6 +49,8 @@ public class SensitivityOref1Plugin extends AbstractSensitivityPlugin {
 
     @Override
     public AutosensResult detectSensitivity(long fromTime, long toTime) {
+        // todo this method is called from the IobCobCalculatorPlugin, which leads to a circular
+        // dependency, this should be avoided
         LongSparseArray<AutosensData> autosensDataTable = IobCobCalculatorPlugin.getPlugin().getAutosensDataTable();
 
         Profile profile = MainApp.getConfigBuilder().getProfile();
@@ -63,13 +61,14 @@ public class SensitivityOref1Plugin extends AbstractSensitivityPlugin {
         }
 
         if (autosensDataTable == null || autosensDataTable.size() < 4) {
-            log.debug("No autosens data available");
+            log.debug("No autosens data available. lastDataTime=" + IobCobCalculatorPlugin.getPlugin().lastDataTime());
             return new AutosensResult();
         }
 
+        // the current
         AutosensData current = IobCobCalculatorPlugin.getPlugin().getAutosensData(toTime); // this is running inside lock already
         if (current == null) {
-            log.debug("No current autosens data available");
+            log.debug("No autosens data available. toTime: " + DateUtil.dateAndTimeString(toTime) + " lastDataTime: " + IobCobCalculatorPlugin.getPlugin().lastDataTime());
             return new AutosensResult();
         }
 
