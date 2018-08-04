@@ -15,6 +15,8 @@ import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.db.DbRequest;
 import info.nightscout.androidaps.interfaces.PluginType;
+import info.nightscout.androidaps.logging.BundleLogger;
+import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.NSClientInternal.NSClientPlugin;
 import info.nightscout.androidaps.plugins.NSClientInternal.UploadQueue;
 import info.nightscout.androidaps.plugins.NSClientInternal.broadcasts.BroadcastTreatment;
@@ -22,7 +24,7 @@ import info.nightscout.utils.DateUtil;
 import info.nightscout.utils.SP;
 
 public class DBAccessReceiver extends BroadcastReceiver {
-    private static Logger log = LoggerFactory.getLogger(DBAccessReceiver.class);
+    private static Logger log = LoggerFactory.getLogger(L.NSCLIENT);
 
 
     @Override
@@ -43,18 +45,24 @@ public class DBAccessReceiver extends BroadcastReceiver {
             try {
                 collection = bundles.getString("collection");
             } catch (Exception e) {
+                log.error("Unhandled exception", e);
+                BundleLogger.log(bundles);
             }
             try {
                 _id = bundles.getString("_id");
             } catch (Exception e) {
+                log.error("Unhandled exception", e);
+                BundleLogger.log(bundles);
             }
             try {
                 data = new JSONObject(bundles.getString("data"));
             } catch (Exception e) {
+                log.error("Unhandled exception", e);
+                BundleLogger.log(bundles);
             }
 
             if (data == null && !action.equals("dbRemove") || _id == null && action.equals("dbRemove")) {
-                log.debug("DBACCESS no data inside record");
+                log.error("DBACCESS no data inside record");
                 return;
             }
 
@@ -67,10 +75,11 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 data.put("NSCLIENT_ID", nsclientid);
             } catch (JSONException e) {
                 log.error("Unhandled exception", e);
+                BundleLogger.log(bundles);
             }
 
             if (!isAllowedCollection(collection)) {
-                log.debug("DBACCESS wrong collection specified");
+                log.error("DBACCESS wrong collection specified");
                 return;
             }
 
