@@ -30,6 +30,8 @@ import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.IobCobCalculator.events.EventAutosensCalculationFinished;
 import info.nightscout.androidaps.plugins.IobCobCalculator.events.EventIobCalculationProgress;
 import info.nightscout.androidaps.plugins.OpenAPSSMB.SMBDefaults;
+import info.nightscout.androidaps.plugins.Overview.events.EventNewNotification;
+import info.nightscout.androidaps.plugins.Overview.notifications.Notification;
 import info.nightscout.androidaps.plugins.Treatments.Treatment;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.utils.DateUtil;
@@ -180,11 +182,24 @@ public class IobCobOref1Thread extends Thread {
                         if (hourAgoData != null) {
                             int initialIndex = autosensDataTable.indexOfKey(hourAgoData.time);
                             if (L.isEnabled(L.AUTOSENS))
-                                log.debug(">>>>> bucketed_data.size()=" + bucketed_data.size() + " i=" + i + "hourAgoData=" + hourAgoData.toString());
+                                log.debug(">>>>> bucketed_data.size()=" + bucketed_data.size() + " i=" + i + " hourAgoData=" + hourAgoData.toString());
                             int past = 1;
                             try {
                                 for (; past < 12; past++) {
                                     AutosensData ad = autosensDataTable.valueAt(initialIndex + past);
+                                    if (L.isEnabled(L.AUTOSENS)) {
+                                        log.debug(">>>>> past=" + past + " ad=" + (ad != null ? ad.toString() : null));
+                                        if (ad == null) {
+                                            log.debug(autosensDataTable.toString());
+                                            log.debug(bucketed_data.toString());
+                                            log.debug(IobCobCalculatorPlugin.getPlugin().getBgReadings().toString());
+                                            Notification notification = new Notification(Notification.SENDLOGFILES, MainApp.gs(R.string.sendlogfiles), Notification.LOW);
+                                            MainApp.bus().post(new EventNewNotification(notification));
+                                            SP.putBoolean("log_AUTOSENS", true);
+                                            break;
+                                        }
+                                    }
+                                    // let it here crash on NPE to get more data as i cannot reproduce this bug
                                     double deviationSlope = (ad.avgDeviation - avgDeviation) / (ad.time - bgTime) * 1000 * 60 * 5;
                                     if (ad.avgDeviation > maxDeviation) {
                                         slopeFromMaxDeviation = Math.min(0, deviationSlope);
@@ -208,7 +223,17 @@ public class IobCobOref1Thread extends Thread {
                                         .putCustomAttribute("for_data", ">>>>> bucketed_data.size()=" + bucketed_data.size() + " i=" + i + "hourAgoData=" + hourAgoData.toString())
                                         .putCustomAttribute("past", past)
                                 );
+                                log.debug(autosensDataTable.toString());
+                                log.debug(bucketed_data.toString());
+                                log.debug(IobCobCalculatorPlugin.getPlugin().getBgReadings().toString());
+                                Notification notification = new Notification(Notification.SENDLOGFILES, MainApp.gs(R.string.sendlogfiles), Notification.LOW);
+                                MainApp.bus().post(new EventNewNotification(notification));
+                                SP.putBoolean("log_AUTOSENS", true);
+                                break;
                             }
+                        } else {
+                            if (L.isEnabled(L.AUTOSENS))
+                                log.debug(">>>>> bucketed_data.size()=" + bucketed_data.size() + " i=" + i + " hourAgoData=" + "null");
                         }
                     }
 

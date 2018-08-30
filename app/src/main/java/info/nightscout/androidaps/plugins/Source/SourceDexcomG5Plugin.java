@@ -42,7 +42,6 @@ public class SourceDexcomG5Plugin extends PluginBase implements BgSourceInterfac
                 .fragmentClass(BGSourceFragment.class.getName())
                 .pluginName(R.string.DexcomG5)
                 .shortName(R.string.dexcomG5_shortname)
-                .showInList(!Config.NSCLIENT)
                 .preferencesId(R.xml.pref_dexcomg5)
                 .description(R.string.description_source_dexcom_g5)
         );
@@ -67,6 +66,8 @@ public class SourceDexcomG5Plugin extends PluginBase implements BgSourceInterfac
         String data = bundle.getString("data");
         if (L.isEnabled(L.BGSOURCE))
             log.debug("Received Dexcom Data", data);
+
+        if (data == null) return;
 
         try {
             JSONArray jsonArray = new JSONArray(data);

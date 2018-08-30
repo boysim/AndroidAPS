@@ -108,7 +108,7 @@ public class NSClientService extends Service {
 
     private ArrayList<Long> reconnections = new ArrayList<>();
     private int WATCHDOG_INTERVAL_MINUTES = 2;
-    private int WATCHDOG_RECONNECT_IN = 1;
+    private int WATCHDOG_RECONNECT_IN = 15;
     private int WATCHDOG_MAXCONNECTIONS = 5;
 
     public NSClientService() {
@@ -248,8 +248,10 @@ public class NSClientService extends Service {
         @Override
         public void call(Object... args) {
             connectCounter++;
-            MainApp.bus().post(new EventNSClientNewLog("NSCLIENT", "connect #" + connectCounter + " event. ID: " + mSocket.id()));
-            sendAuthMessage(new NSAuthAck());
+            String socketId = mSocket != null ? mSocket.id() : "NULL";
+            MainApp.bus().post(new EventNSClientNewLog("NSCLIENT", "connect #" + connectCounter + " event. ID: " + socketId));
+            if (mSocket != null)
+                sendAuthMessage(new NSAuthAck());
             watchdog();
         }
     };
@@ -289,7 +291,7 @@ public class NSClientService extends Service {
         }
     };
 
-    public void destroy() {
+    public synchronized void destroy() {
         if (mSocket != null) {
             mSocket.off(Socket.EVENT_CONNECT);
             mSocket.off(Socket.EVENT_DISCONNECT);

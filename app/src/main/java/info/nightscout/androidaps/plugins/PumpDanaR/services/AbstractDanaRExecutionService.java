@@ -58,15 +58,14 @@ public abstract class AbstractDanaRExecutionService extends Service {
     protected DanaRPump mDanaRPump = DanaRPump.getInstance();
     protected Treatment mBolusingTreatment = null;
 
-    protected Boolean mConnectionInProgress = false;
+    protected boolean mConnectionInProgress = false;
+    protected boolean mHandshakeInProgress = false;
 
     protected AbstractSerialIOThread mSerialIOThread;
 
     protected IBinder mBinder;
 
     protected final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-
-    protected long lastWrongPumpPassword = 0;
 
     protected long lastApproachingDailyLimit = 0;
 
@@ -129,6 +128,15 @@ public abstract class AbstractDanaRExecutionService extends Service {
 
     public boolean isConnecting() {
         return mConnectionInProgress;
+    }
+
+    public boolean isHandshakeInProgress() {
+        return isConnected() && mHandshakeInProgress;
+    }
+
+    public void finishHandshaking() {
+        mHandshakeInProgress = false;
+        MainApp.bus().post(new EventPumpStatusChanged(EventPumpStatusChanged.CONNECTED, 0));
     }
 
     public void disconnect(String from) {
@@ -229,6 +237,4 @@ public abstract class AbstractDanaRExecutionService extends Service {
         result.comment = "OK";
         return result;
     }
-
-
 }
