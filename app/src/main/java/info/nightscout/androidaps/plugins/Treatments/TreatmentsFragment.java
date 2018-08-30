@@ -27,8 +27,6 @@ import info.nightscout.androidaps.plugins.Treatments.fragments.TreatmentsTempora
 import info.nightscout.utils.FabricPrivacy;
 
 public class TreatmentsFragment extends SubscriberFragment implements View.OnClickListener {
-    private static Logger log = LoggerFactory.getLogger(TreatmentsFragment.class);
-
     TextView treatmentsTab;
     TextView extendedBolusesTab;
     TextView tempBasalsTab;
@@ -107,13 +105,13 @@ public class TreatmentsFragment extends SubscriberFragment implements View.OnCli
     }
 
     private void setBackgroundColorOnSelected(TextView selected) {
-        treatmentsTab.setBackgroundColor(MainApp.sResources.getColor(R.color.defaultbackground));
-        extendedBolusesTab.setBackgroundColor(MainApp.sResources.getColor(R.color.defaultbackground));
-        tempBasalsTab.setBackgroundColor(MainApp.sResources.getColor(R.color.defaultbackground));
-        tempTargetTab.setBackgroundColor(MainApp.sResources.getColor(R.color.defaultbackground));
-        profileSwitchTab.setBackgroundColor(MainApp.sResources.getColor(R.color.defaultbackground));
-        careportalTab.setBackgroundColor(MainApp.sResources.getColor(R.color.defaultbackground));
-        selected.setBackgroundColor(MainApp.sResources.getColor(R.color.tabBgColorSelected));
+        treatmentsTab.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+        extendedBolusesTab.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+        tempBasalsTab.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+        tempTargetTab.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+        profileSwitchTab.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+        careportalTab.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+        selected.setBackgroundColor(MainApp.gc(R.color.tabBgColorSelected));
     }
 
     @Subscribe

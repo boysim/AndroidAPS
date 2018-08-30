@@ -100,7 +100,7 @@ public class CareportalFragment extends SubscriberFragment implements View.OnCli
             noProfileView = view.findViewById(R.id.profileview_noprofile);
             butonsLayout = (LinearLayout) view.findViewById(R.id.careportal_buttons);
 
-            ProfileStore profileStore = MainApp.getConfigBuilder().getActiveProfileInterface().getProfile();
+            ProfileStore profileStore = MainApp.getConfigBuilder().getActiveProfileInterface() != null ? MainApp.getConfigBuilder().getActiveProfileInterface().getProfile() : null;
             if (profileStore == null) {
                 noProfileView.setVisibility(View.VISIBLE);
                 butonsLayout.setVisibility(View.GONE);
@@ -109,7 +109,7 @@ public class CareportalFragment extends SubscriberFragment implements View.OnCli
                 butonsLayout.setVisibility(View.VISIBLE);
             }
 
-            if (Config.NSCLIENT || Config.G5UPLOADER)
+            if (Config.NSCLIENT)
                 statsLayout.setVisibility(View.GONE); // visible on overview
 
             updateGUI();
@@ -218,50 +218,19 @@ public class CareportalFragment extends SubscriberFragment implements View.OnCli
 
                         double iageUrgent = nsSettings.getExtendedWarnValue("iage", "urgent", 96);
                         double iageWarn = nsSettings.getExtendedWarnValue("iage", "warn", 72);
+                        handleAge(iage, CareportalEvent.INSULINCHANGE, iageWarn, iageUrgent);
+
                         double cageUrgent = nsSettings.getExtendedWarnValue("cage", "urgent", 72);
                         double cageWarn = nsSettings.getExtendedWarnValue("cage", "warn", 48);
+                        handleAge(cage, CareportalEvent.SITECHANGE, cageWarn, cageUrgent);
+
                         double sageUrgent = nsSettings.getExtendedWarnValue("sage", "urgent", 166);
                         double sageWarn = nsSettings.getExtendedWarnValue("sage", "warn", 164);
+                        handleAge(sage, CareportalEvent.SENSORCHANGE, sageWarn, sageUrgent);
+
                         double pbageUrgent = nsSettings.getExtendedWarnValue("pgage", "urgent", 360);
                         double pbageWarn = nsSettings.getExtendedWarnValue("pgage", "warn", 240);
-
-                        String notavailable = OverviewFragment.shorttextmode ? "-" : MainApp.sResources.getString(R.string.notavailable);
-                        if (sage != null) {
-                            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SENSORCHANGE);
-                            if (careportalEvent != null) {
-                                sage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, sageWarn, sageUrgent));
-                                sage.setText(careportalEvent.age());
-                            } else {
-                                sage.setText(notavailable);
-                            }
-                        }
-                        if (iage != null) {
-                            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.INSULINCHANGE);
-                            if (careportalEvent != null) {
-                                iage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, iageWarn, iageUrgent));
-                                iage.setText(careportalEvent.age());
-                            } else {
-                                iage.setText(notavailable);
-                            }
-                        }
-                        if (cage != null) {
-                            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SITECHANGE);
-                            if (careportalEvent != null) {
-                                cage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, cageWarn, cageUrgent));
-                                cage.setText(careportalEvent.age());
-                            } else {
-                                cage.setText(notavailable);
-                            }
-                        }
-                        if (pbage != null) {
-                            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.PUMPBATTERYCHANGE);
-                            if (careportalEvent != null) {
-                                pbage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, pbageWarn, pbageUrgent));
-                                pbage.setText(careportalEvent.age());
-                            } else {
-                                pbage.setText(notavailable);
-                            }
-                        }
+                        handleAge(pbage, CareportalEvent.PUMPBATTERYCHANGE, pbageWarn, pbageUrgent);
                     }
             );
         }
@@ -269,13 +238,29 @@ public class CareportalFragment extends SubscriberFragment implements View.OnCli
 
     public static int determineTextColor(CareportalEvent careportalEvent, double warnThreshold, double urgentThreshold) {
         if (careportalEvent.isOlderThan(urgentThreshold)) {
-            return MainApp.sResources.getColor(R.color.low);
+            return MainApp.gc(R.color.low);
         } else if (careportalEvent.isOlderThan(warnThreshold)) {
-            return MainApp.sResources.getColor(R.color.high);
+            return MainApp.gc(R.color.high);
         } else {
             return Color.WHITE;
         }
 
+    }
+
+    private static TextView handleAge(final TextView age, String eventType, double warnThreshold, double urgentThreshold) {
+        String notavailable = OverviewFragment.shorttextmode ? "-" : MainApp.gs(R.string.notavailable);
+
+        if (age != null) {
+            CareportalEvent careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(eventType);
+            if (careportalEvent != null) {
+                age.setTextColor(CareportalFragment.determineTextColor(careportalEvent, warnThreshold, urgentThreshold));
+                age.setText(careportalEvent.age());
+            } else {
+                age.setText(notavailable);
+            }
+        }
+
+        return age;
     }
 }
 

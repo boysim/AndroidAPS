@@ -24,7 +24,8 @@ public class InsulinOrefFreePeakPlugin extends InsulinOrefBasePlugin {
         super();
         pluginDescription
                 .pluginName(R.string.free_peak_oref)
-                .preferencesId(R.xml.pref_insulinoreffreepeak);
+                .preferencesId(R.xml.pref_insulinoreffreepeak)
+                .description(R.string.description_insulin_free_peak);
     }
 
     @Override
@@ -33,12 +34,12 @@ public class InsulinOrefFreePeakPlugin extends InsulinOrefBasePlugin {
     }
 
     public String getFriendlyName() {
-        return MainApp.sResources.getString(R.string.free_peak_oref);
+        return MainApp.gs(R.string.free_peak_oref);
     }
 
     @Override
     public String commentStandardText() {
-        return MainApp.sResources.getString(R.string.insulin_peak_time) + ": " + getPeak();
+        return MainApp.gs(R.string.insulin_peak_time) + ": " + getPeak();
     }
 
     @Override

@@ -9,11 +9,14 @@ import android.support.annotation.NonNull;
 
 import com.squareup.otto.Subscribe;
 
+import info.nightscout.androidaps.Config;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.data.Profile;
 import info.nightscout.androidaps.db.TemporaryBasal;
+import info.nightscout.androidaps.events.EventAppInitialized;
+import info.nightscout.androidaps.events.EventConfigBuilderChange;
 import info.nightscout.androidaps.events.EventExtendedBolusChange;
 import info.nightscout.androidaps.events.EventNewBG;
 import info.nightscout.androidaps.events.EventPreferenceChange;
@@ -25,6 +28,9 @@ import info.nightscout.androidaps.interfaces.PluginDescription;
 import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.TreatmentsInterface;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
+import info.nightscout.androidaps.plugins.IobCobCalculator.CobInfo;
+import info.nightscout.androidaps.plugins.IobCobCalculator.IobCobCalculatorPlugin;
 import info.nightscout.androidaps.plugins.Loop.LoopPlugin;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.utils.DecimalFormatter;
@@ -68,6 +74,7 @@ public class StatuslinePlugin extends PluginBase {
                 .shortName(R.string.xdripstatus_shortname)
                 .neverVisible(true)
                 .preferencesId(R.xml.pref_xdripstatus)
+                .description(R.string.description_xdrip_status_line)
         );
         this.ctx = ctx;
         this.mPrefs = PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -76,7 +83,6 @@ public class StatuslinePlugin extends PluginBase {
     @Override
     protected void onStart() {
         MainApp.bus().register(this);
-        sendStatus();
         super.onStart();
     }
 
@@ -90,7 +96,7 @@ public class StatuslinePlugin extends PluginBase {
     private void sendStatus() {
         String status = ""; // sent once on disable
 
-        Profile profile = MainApp.getConfigBuilder().getProfile();
+        Profile profile = ProfileFunctions.getInstance().getProfile();
 
         if (isEnabled(PluginType.GENERAL) && profile != null) {
             status = buildStatusString(profile);
@@ -108,10 +114,14 @@ public class StatuslinePlugin extends PluginBase {
     @NonNull
     private String buildStatusString(Profile profile) {
         String status = "";
+
+        if (ConfigBuilderPlugin.getPlugin().getActivePump() == null)
+            return "";
+        
         LoopPlugin loopPlugin = LoopPlugin.getPlugin();
 
         if (!loopPlugin.isEnabled(PluginType.LOOP)) {
-            status += ctx.getString(R.string.disabledloop) + "\n";
+            status += MainApp.gs(R.string.disabledloop) + "\n";
             lastLoopStatus = false;
         } else if (loopPlugin.isEnabled(PluginType.LOOP)) {
             lastLoopStatus = true;
@@ -130,7 +140,7 @@ public class StatuslinePlugin extends PluginBase {
         IobTotal bolusIob = treatmentsInterface.getLastCalculationTreatments().round();
         treatmentsInterface.updateTotalIOBTempBasals();
         IobTotal basalIob = treatmentsInterface.getLastCalculationTempBasals().round();
-        status += DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob);
+        status += DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob)+"U";
 
 
         if (mPrefs.getBoolean("xdripstatus_detailediob", true)) {
@@ -146,6 +156,7 @@ public class StatuslinePlugin extends PluginBase {
         double bgi = -(bolusIob.activity + basalIob.activity) * 5 * profile.getIsf();
 
         status += " " + ((bgi >= 0) ? "+" : "") + DecimalFormatter.to2Decimal(bgi);
+        status += " " + IobCobCalculatorPlugin.getPlugin().getCobInfo(false, "StatuslinePlugin").generateCOBString();
 
         return status;
     }
@@ -174,6 +185,16 @@ public class StatuslinePlugin extends PluginBase {
 
     @Subscribe
     public void onStatusEvent(final EventNewBG ev) {
+        sendStatus();
+    }
+
+    @Subscribe
+    public void onStatusEvent(final EventAppInitialized ev) {
+        sendStatus();
+    }
+
+    @Subscribe
+    public void onStatusEvent(final EventConfigBuilderChange ev) {
         sendStatus();
     }
 

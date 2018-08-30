@@ -1,9 +1,7 @@
 package info.nightscout.androidaps.plugins.Overview.Dialogs;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.HandlerThread;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
@@ -23,6 +21,8 @@ import android.widget.RadioButton;
 
 import com.google.common.base.Joiner;
 
+import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
+import info.nightscout.androidaps.plugins.NSClientInternal.NSUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,15 +33,15 @@ import java.util.List;
 import info.nightscout.androidaps.Constants;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
-import info.nightscout.androidaps.data.DetailedBolusInfo;
 import info.nightscout.androidaps.data.Profile;
+import info.nightscout.androidaps.db.BgReading;
 import info.nightscout.androidaps.db.CareportalEvent;
+import info.nightscout.androidaps.db.DatabaseHelper;
 import info.nightscout.androidaps.db.Source;
 import info.nightscout.androidaps.db.TempTarget;
 import info.nightscout.androidaps.interfaces.Constraint;
-import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.Treatments.CarbsGenerator;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
-import info.nightscout.androidaps.queue.Callback;
 import info.nightscout.utils.DateUtil;
 import info.nightscout.utils.DecimalFormatter;
 import info.nightscout.utils.DefaultValueHelper;
@@ -128,7 +128,6 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
         startEatingSoonTTCheckbox = view.findViewById(R.id.newcarbs_eating_soon_tt);
         startEatingSoonTTCheckbox.setOnCheckedChangeListener(this);
         startHypoTTCheckbox = view.findViewById(R.id.newcarbs_hypo_tt);
-        startHypoTTCheckbox.setOnCheckedChangeListener(this);
 
         editTime = view.findViewById(R.id.newcarbs_time);
         editTime.setParams(0d, -12 * 60d, 12 * 60d, 5d, new DecimalFormat("0"), false, textWatcher);
@@ -157,14 +156,43 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
         notesLayout.setVisibility(SP.getBoolean(R.string.key_show_notes_entry_dialogs, false) ? View.VISIBLE : View.GONE);
         notesEdit = view.findViewById(R.id.newcarbs_notes);
 
+        BgReading bgReading = DatabaseHelper.actualBg();
+        if (bgReading != null && bgReading.value < 72) {
+            startHypoTTCheckbox.setChecked(true);
+            // see #onCheckedChanged why listeners are registered like this
+            startHypoTTCheckbox.setOnClickListener(this);
+        } else {
+            startHypoTTCheckbox.setOnCheckedChangeListener(this);
+        }
+
         setCancelable(true);
         getDialog().setCanceledOnTouchOutside(false);
+
+        //recovering state if there is something
+        if (savedInstanceState != null) {
+            editCarbs.setValue(savedInstanceState.getDouble("editCarbs"));
+            editTime.setValue(savedInstanceState.getDouble("editTime"));
+            editDuration.setValue(savedInstanceState.getDouble("editDuration"));
+        }
         return view;
     }
 
     private String toSignedString(int value) {
         return value > 0 ? "+" + value : String.valueOf(value);
     }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle carbsDialogState) {
+        carbsDialogState.putBoolean("startActivityTTCheckbox",startActivityTTCheckbox.isChecked());
+        carbsDialogState.putBoolean("startEatingSoonTTCheckbox", startEatingSoonTTCheckbox.isChecked());
+        carbsDialogState.putBoolean("startHypoTTCheckbox", startHypoTTCheckbox.isChecked());
+        carbsDialogState.putDouble("editTime", editTime.getValue());
+        carbsDialogState.putDouble("editDuration", editDuration.getValue());
+        carbsDialogState.putDouble("editCarbs", editCarbs.getValue());
+        super.onSaveInstanceState(carbsDialogState);
+    }
+
 
     @Override
     public synchronized void onClick(View view) {
@@ -223,15 +251,17 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
         }
     }
 
+
+
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        // Logic to disable a selected radio when pressed. When a checked radio
-        // is pressed, no CheckChanged event is trigger, so register a Click event
+        // Logic to disable a selected radio when pressed: when a checked radio
+        // is pressed, no CheckChanged event is triggered, so register a Click event
         // when checking a radio. Since Click events come after CheckChanged events,
-        // the Click event is triggered immediately after this. Thus, set toggingTT
+        // the Click event is triggered immediately after this. Thus, set togglingTT
         // var to true, so that the first Click event fired after this is ignored.
         // Radios remove themselves from Click events once unchecked.
-        // Since radios are not in a group, manually update their state.
+        // Since radios are not in a group,  their state is manually updated here.
         switch (buttonView.getId()) {
             case R.id.newcarbs_activity_tt:
                 togglingTT = true;
@@ -280,7 +310,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
         }
         okClicked = true;
         try {
-            final Profile currentProfile = MainApp.getConfigBuilder().getProfile();
+            final Profile currentProfile = ProfileFunctions.getInstance().getProfile();
             if (currentProfile == null) {
                 return;
             }
@@ -307,21 +337,21 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                 if (currentProfile.getUnits().equals(Constants.MMOL)) {
                     unitLabel = "mmol/l";
                 }
-
-                actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.high) + "'>" + DecimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + activityTTDuration + " min)</font>");
-
+                actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + activityTTDuration + " min)</font>");
             }
             if (startEatingSoonTTCheckbox.isChecked()) {
                 if (currentProfile.getUnits().equals(Constants.MMOL)) {
-                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.high) + "'>" + DecimalFormatter.to1Decimal(eatingSoonTT) + " mmol/l (" + eatingSoonTTDuration + " min)</font>");
-                } else
-                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.high) + "'>" + DecimalFormatter.to0Decimal(eatingSoonTT) + " mg/dl (" + eatingSoonTTDuration + " min)</font>");
+                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(eatingSoonTT) + " mmol/l (" + eatingSoonTTDuration + " min)</font>");
+                } else {
+                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to0Decimal(eatingSoonTT) + " mg/dl (" + eatingSoonTTDuration + " min)</font>");
+                }
             }
             if (startHypoTTCheckbox.isChecked()) {
                 if (currentProfile.getUnits().equals(Constants.MMOL)) {
-                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.high) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " mmol/l (" + hypoTTDuration + " min)</font>");
-                } else
-                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.high) + "'>" + DecimalFormatter.to0Decimal(hypoTT) + " mg/dl (" + hypoTTDuration + " min)</font>");
+                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " mmol/l (" + hypoTTDuration + " min)</font>");
+                } else {
+                    actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to0Decimal(hypoTT) + " mg/dl (" + hypoTTDuration + " min)</font>");
+                }
             }
 
             int timeOffset = editTime.getValue().intValue();
@@ -334,10 +364,10 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                 actions.add(MainApp.gs(R.string.duration) + ": " + duration + MainApp.gs(R.string.shorthour));
             }
             if (carbs > 0) {
-                actions.add(MainApp.gs(R.string.carbs) + ": " + "<font color='" + MainApp.gc(R.color.colorCarbsButton) + "'>" + carbsAfterConstraints + "g" + "</font>");
+                actions.add(MainApp.gs(R.string.carbs) + ": " + "<font color='" + MainApp.gc(R.color.carbs) + "'>" + carbsAfterConstraints + "g" + "</font>");
             }
             if (!carbsAfterConstraints.equals(carbs)) {
-                actions.add("<font color='" + MainApp.gc(R.color.low) + "'>" + MainApp.gs(R.string.carbsconstraintapplied) + "</font>");
+                actions.add("<font color='" + MainApp.gc(R.color.warning) + "'>" + MainApp.gs(R.string.carbsconstraintapplied) + "</font>");
             }
             final String notes = notesEdit.getText().toString();
             if (!notes.isEmpty()) {
@@ -364,47 +394,41 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                         }
                         accepted = true;
 
-                    if (startActivityTTCheckbox.isChecked()) {
-                        TempTarget tempTarget = new TempTarget()
-                                .date(System.currentTimeMillis())
-                                .duration(finalActivityTTDuration)
-                                .reason(MainApp.gs(R.string.activity))
-                                .source(Source.USER)
-                                .low(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()))
-                                .high(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()));
-                        TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-                    } else if (startEatingSoonTTCheckbox.isChecked()) {
-                        TempTarget tempTarget = new TempTarget()
-                                .date(System.currentTimeMillis())
-                                .duration(finalEatingSoonTTDuration)
-                                .reason(MainApp.gs(R.string.eatingsoon))
-                                .source(Source.USER)
-                                .low(Profile.toMgdl(finalEatigSoonTT, currentProfile.getUnits()))
-                                .high(Profile.toMgdl(finalEatigSoonTT, currentProfile.getUnits()));
-                        TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-                    } else if (startHypoTTCheckbox.isChecked()) {
-                        TempTarget tempTarget = new TempTarget()
-                                .date(System.currentTimeMillis())
-                                .duration(finalHypoTTDuration)
-                                .reason(MainApp.gs(R.string.hypo))
-                                .source(Source.USER)
-                                .low(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()))
-                                .high(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()));
-                        TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-                    }
+                        if (startActivityTTCheckbox.isChecked()) {
+                            TempTarget tempTarget = new TempTarget()
+                                    .date(System.currentTimeMillis())
+                                    .duration(finalActivityTTDuration)
+                                    .reason(MainApp.gs(R.string.activity))
+                                    .source(Source.USER)
+                                    .low(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()))
+                                    .high(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()));
+                            TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
+                        } else if (startEatingSoonTTCheckbox.isChecked()) {
+                            TempTarget tempTarget = new TempTarget()
+                                    .date(System.currentTimeMillis())
+                                    .duration(finalEatingSoonTTDuration)
+                                    .reason(MainApp.gs(R.string.eatingsoon))
+                                    .source(Source.USER)
+                                    .low(Profile.toMgdl(finalEatigSoonTT, currentProfile.getUnits()))
+                                    .high(Profile.toMgdl(finalEatigSoonTT, currentProfile.getUnits()));
+                            TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
+                        } else if (startHypoTTCheckbox.isChecked()) {
+                            TempTarget tempTarget = new TempTarget()
+                                    .date(System.currentTimeMillis())
+                                    .duration(finalHypoTTDuration)
+                                    .reason(MainApp.gs(R.string.hypo))
+                                    .source(Source.USER)
+                                    .low(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()))
+                                    .high(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()));
+                            TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
+                        }
 
                         if (carbsAfterConstraints > 0) {
                             if (duration == 0) {
-                                createCarb(carbsAfterConstraints, time, notes);
+                                CarbsGenerator.createCarb(carbsAfterConstraints, time, CareportalEvent.CARBCORRECTION, notes);
                             } else {
-                                long remainingCarbs = carbsAfterConstraints;
-                                int ticks = (duration * 4); //duration guaranteed to be integer greater zero
-                                for (int i = 0; i < ticks; i++){
-                                    long carbTime = time + i * 15 * 60 * 1000;
-                                    long smallCarbAmount = Math.round((1d * remainingCarbs) / (ticks-i));  //on last iteration (ticks-i) is 1 -> smallCarbAmount == remainingCarbs
-                                    remainingCarbs -= smallCarbAmount;
-                                    createCarb(smallCarbAmount, carbTime, notes);
-                                }
+                                CarbsGenerator.generateCarbs(carbsAfterConstraints, time, duration, notes);
+                                NSUpload.uploadEvent(CareportalEvent.NOTE, now() - 2000, MainApp.gs(R.string.generated_ecarbs_note, carbsAfterConstraints, duration, timeOffset));
                             }
                         }
                     }
@@ -417,33 +441,6 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
             dismiss();
         } catch (Exception e) {
             log.error("Unhandled exception", e);
-        }
-    }
-
-    private void createCarb(long carbs, long time, @Nullable String notes) {
-        DetailedBolusInfo carbInfo = new DetailedBolusInfo();
-        carbInfo.date = time;
-        carbInfo.eventType = CareportalEvent.CARBCORRECTION;
-        carbInfo.carbs = carbs;
-        carbInfo.context = getContext();
-        carbInfo.source = Source.USER;
-        carbInfo.notes = notes;
-        if (ConfigBuilderPlugin.getActivePump().getPumpDescription().storesCarbInfo && carbInfo.date <= now()) {
-            ConfigBuilderPlugin.getCommandQueue().bolus(carbInfo, new Callback() {
-                @Override
-                public void run() {
-                    if (!result.success) {
-                        Intent i = new Intent(MainApp.instance(), ErrorHelperActivity.class);
-                        i.putExtra("soundid", R.raw.boluserror);
-                        i.putExtra("status", result.comment);
-                        i.putExtra("title", MainApp.gs(R.string.treatmentdeliveryerror));
-                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        MainApp.instance().startActivity(i);
-                    }
-                }
-            });
-        } else {
-            TreatmentsPlugin.getPlugin().addToHistoryTreatment(carbInfo);
         }
     }
 }

@@ -49,7 +49,7 @@ public class SafetyPlugin extends PluginBase implements ConstraintsInterface {
      * Constraints interface
      **/
     @Override
-    public Constraint<Boolean> isLoopInvokationAllowed(Constraint<Boolean> value) {
+    public Constraint<Boolean> isLoopInvocationAllowed(Constraint<Boolean> value) {
         if (!ConfigBuilderPlugin.getActivePump().getPumpDescription().isTempBasalCapable)
             value.set(false, MainApp.gs(R.string.pumpisnottempbasalcapable), this);
         return value;
@@ -57,7 +57,7 @@ public class SafetyPlugin extends PluginBase implements ConstraintsInterface {
 
     @Override
     public Constraint<Boolean> isClosedLoopAllowed(Constraint<Boolean> value) {
-        String mode = SP.getString("aps_mode", "open");
+        String mode = SP.getString(R.string.key_aps_mode, "open");
         if (!mode.equals("closed"))
             value.set(false, MainApp.gs(R.string.closedmodedisabledinpreferences), this);
 

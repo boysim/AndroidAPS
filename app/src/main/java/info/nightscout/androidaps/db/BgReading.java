@@ -1,5 +1,7 @@
 package info.nightscout.androidaps.db;
 
+import android.content.res.Resources;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -13,6 +15,8 @@ import info.nightscout.androidaps.Constants;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.Profile;
+import info.nightscout.androidaps.logging.L;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.NSClientInternal.data.NSSgv;
 import info.nightscout.androidaps.plugins.Overview.OverviewPlugin;
 import info.nightscout.androidaps.plugins.Overview.graphExtensions.DataPointWithLabelInterface;
@@ -22,7 +26,7 @@ import info.nightscout.utils.SP;
 
 @DatabaseTable(tableName = DatabaseHelper.DATABASE_BGREADINGS)
 public class BgReading implements DataPointWithLabelInterface {
-    private static Logger log = LoggerFactory.getLogger(BgReading.class);
+    private static Logger log = LoggerFactory.getLogger(L.DATABASE);
 
     @DatabaseField(id = true)
     public long date;
@@ -140,7 +144,7 @@ public class BgReading implements DataPointWithLabelInterface {
             return false;
         if (raw != other.raw)
             return false;
-        if (!direction.equals(other.direction))
+        if (!Objects.equals(direction, other.direction))
             return false;
         if (!Objects.equals(_id, other._id))
             return false;
@@ -158,6 +162,16 @@ public class BgReading implements DataPointWithLabelInterface {
         _id = other._id;
     }
 
+    public BgReading date(long date) {
+        this.date = date;
+        return this;
+    }
+
+    public BgReading value(double value) {
+        this.value = value;
+        return this;
+    }
+
     // ------------------ DataPointWithLabelInterface ------------------
     @Override
     public double getX() {
@@ -166,7 +180,7 @@ public class BgReading implements DataPointWithLabelInterface {
 
     @Override
     public double getY() {
-        String units = MainApp.getConfigBuilder().getProfileUnits();
+        String units = ProfileFunctions.getInstance().getProfileUnits();
         return valueToUnits(units);
     }
 
@@ -200,7 +214,7 @@ public class BgReading implements DataPointWithLabelInterface {
 
     @Override
     public int getColor() {
-        String units = MainApp.getConfigBuilder().getProfileUnits();
+        String units = ProfileFunctions.getInstance().getProfileUnits();
         Double lowLine = SP.getDouble("low_mark", 0d);
         Double highLine = SP.getDouble("high_mark", 0d);
         if (lowLine < 1) {
@@ -209,28 +223,27 @@ public class BgReading implements DataPointWithLabelInterface {
         if (highLine < 1) {
             highLine = Profile.fromMgdlToUnits(OverviewPlugin.bgTargetHigh, units);
         }
-        int color = MainApp.sResources.getColor(R.color.inrange);
+        int color = MainApp.gc(R.color.inrange);
         if (isPrediction())
-            color = MainApp.sResources.getColor(R.color.prediction);
+            return getPredectionColor();
         else if (valueToUnits(units) < lowLine)
-            color = MainApp.sResources.getColor(R.color.low);
+            color = MainApp.gc(R.color.low);
         else if (valueToUnits(units) > highLine)
-            color = MainApp.sResources.getColor(R.color.high);
+            color = MainApp.gc(R.color.high);
         return color;
     }
 
-    @Override
-    public int getSecondColor() {
+    public int getPredectionColor() {
         if (isIOBPrediction)
-            return MainApp.sResources.getColor(R.color.iob);
+            return MainApp.gc(R.color.iob);
         if (isCOBPrediction)
-            return MainApp.sResources.getColor(R.color.cob);
+            return MainApp.gc(R.color.cob);
         if (isaCOBPrediction)
-            return 0x80FFFFFF & MainApp.sResources.getColor(R.color.cob);
+            return 0x80FFFFFF & MainApp.gc(R.color.cob);
         if (isUAMPrediction)
-            return MainApp.sResources.getColor(R.color.uam);
+            return MainApp.gc(R.color.uam);
         if (isZTPrediction)
-            return MainApp.sResources.getColor(R.color.zt);
+            return MainApp.gc(R.color.zt);
         return R.color.mdtp_white;
     }
 

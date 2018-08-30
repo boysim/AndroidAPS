@@ -21,6 +21,7 @@ import info.nightscout.androidaps.data.Iob;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.interfaces.InsulinInterface;
 import info.nightscout.androidaps.interfaces.Interval;
+import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.Overview.graphExtensions.DataPointWithLabelInterface;
 import info.nightscout.androidaps.plugins.Overview.graphExtensions.PointsWithLabelGraphSeries;
@@ -36,7 +37,7 @@ import info.nightscout.utils.Round;
 
 @DatabaseTable(tableName = DatabaseHelper.DATABASE_EXTENDEDBOLUSES)
 public class ExtendedBolus implements Interval, DataPointWithLabelInterface {
-    private static Logger log = LoggerFactory.getLogger(ExtendedBolus.class);
+    private static Logger log = LoggerFactory.getLogger(L.DATABASE);
 
     @DatabaseField(id = true)
     public long date;
@@ -58,7 +59,7 @@ public class ExtendedBolus implements Interval, DataPointWithLabelInterface {
     public int durationInMinutes = 0; // duration == 0 means end of extended bolus
 
     @DatabaseField
-    public int insulinInterfaceID = InsulinInterface.FASTACTINGINSULIN;
+    public int insulinInterfaceID = InsulinInterface.OREF_RAPID_ACTING;
     @DatabaseField
     public double dia = Constants.defaultDIA;
 
@@ -297,8 +298,4 @@ public class ExtendedBolus implements Interval, DataPointWithLabelInterface {
         return Color.CYAN;
     }
 
-    @Override
-    public int getSecondColor() {
-        return 0;
-    }
 }

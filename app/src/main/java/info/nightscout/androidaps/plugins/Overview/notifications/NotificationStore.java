@@ -21,9 +21,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import info.nightscout.androidaps.Config;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
-import info.nightscout.androidaps.Services.AlarmSoundService;
+import info.nightscout.androidaps.logging.L;
+import info.nightscout.androidaps.services.AlarmSoundService;
 import info.nightscout.utils.SP;
 
 /**
@@ -32,11 +34,11 @@ import info.nightscout.utils.SP;
 
 public class NotificationStore {
 
-    public static final String CHANNEL_ID = "AndroidAPS-Overview";
+    private static final String CHANNEL_ID = "AndroidAPS-Overview";
 
-    private static Logger log = LoggerFactory.getLogger(NotificationStore.class);
-    public List<Notification> store = new ArrayList<Notification>();
-    public long snoozedUntil = 0L;
+    private static Logger log = LoggerFactory.getLogger(L.NOTIFICATION);
+    public List<Notification> store = new ArrayList<>();
+    private boolean usesChannels;
 
     public NotificationStore() {
         createNotificationChannel();
@@ -50,7 +52,8 @@ public class NotificationStore {
     }
 
     public synchronized boolean add(Notification n) {
-        log.info("Notification received: " + n.text);
+        if (L.isEnabled(L.NOTIFICATION))
+            log.debug("Notification received: " + n.text);
         for (Notification storeNotification : store) {
             if (storeNotification.id == n.id) {
                 storeNotification.date = n.date;
@@ -60,8 +63,14 @@ public class NotificationStore {
         }
         store.add(n);
 
-        if (SP.getBoolean(MainApp.sResources.getString(R.string.key_raise_notifications_as_android_notifications), false)) {
+        if (SP.getBoolean(MainApp.gs(R.string.key_raise_notifications_as_android_notifications), false) && !(n instanceof NotificationWithAction)) {
             raiseSystemNotification(n);
+            if (usesChannels && n.soundId != null) {
+                Intent alarm = new Intent(MainApp.instance().getApplicationContext(), AlarmSoundService.class);
+                alarm.putExtra("soundid", n.soundId);
+                MainApp.instance().startService(alarm);
+            }
+
         } else {
             if (n.soundId != null) {
                 Intent alarm = new Intent(MainApp.instance().getApplicationContext(), AlarmSoundService.class);
@@ -99,16 +108,18 @@ public class NotificationStore {
     }
 
     public void snoozeTo(long timeToSnooze) {
-        log.debug("Snoozing alarm until: " + timeToSnooze);
+        if (L.isEnabled(L.NOTIFICATION))
+            log.debug("Snoozing alarm until: " + timeToSnooze);
         SP.putLong("snoozedTo", timeToSnooze);
     }
 
     public void unSnooze() {
         if (Notification.isAlarmForStaleData()) {
-            Notification notification = new Notification(Notification.NSALARM, MainApp.sResources.getString(R.string.nsalarm_staledata), Notification.URGENT);
+            Notification notification = new Notification(Notification.NSALARM, MainApp.gs(R.string.nsalarm_staledata), Notification.URGENT);
             SP.putLong("snoozedTo", System.currentTimeMillis());
             add(notification);
-            log.debug("Snoozed to current time and added back notification!");
+            if (L.isEnabled(L.NOTIFICATION))
+                log.debug("Snoozed to current time and added back notification!");
         }
     }
 
@@ -116,21 +127,26 @@ public class NotificationStore {
         Context context = MainApp.instance().getApplicationContext();
         NotificationManager mgr = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(), R.mipmap.blueowl);
+        int smallIcon = R.drawable.ic_notification;
+        if (Config.NSCLIENT) {
+            largeIcon = BitmapFactory.decodeResource(MainApp.instance().getResources(), R.mipmap.yellowowl);
+            smallIcon = R.drawable.nsclient_smallicon;
+        }
         Uri sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(context, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_notification)
+                        .setSmallIcon(smallIcon)
                         .setLargeIcon(largeIcon)
                         .setContentText(n.text)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setDeleteIntent(DismissNotificationService.deleteIntent(n.id));
         if (n.level == Notification.URGENT) {
             notificationBuilder.setVibrate(new long[]{1000, 1000, 1000, 1000})
-                    .setContentTitle(MainApp.sResources.getString(R.string.urgent_alarm))
+                    .setContentTitle(MainApp.gs(R.string.urgent_alarm))
                     .setSound(sound, AudioAttributes.USAGE_ALARM);
         } else {
             notificationBuilder.setVibrate(new long[]{0, 100, 50, 100, 50})
-                    .setContentTitle(MainApp.sResources.getString(R.string.info))
+                    .setContentTitle(MainApp.gs(R.string.info))
             ;
         }
         mgr.notify(n.id, notificationBuilder.build());
@@ -138,7 +154,7 @@ public class NotificationStore {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
+            usesChannels = true;
             NotificationManager mNotificationManager =
                     (NotificationManager) MainApp.instance().getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
             @SuppressLint("WrongConstant") NotificationChannel channel = new NotificationChannel(CHANNEL_ID,

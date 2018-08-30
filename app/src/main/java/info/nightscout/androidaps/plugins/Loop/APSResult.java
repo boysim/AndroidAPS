@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import info.nightscout.androidaps.MainApp;
@@ -19,6 +18,7 @@ import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.db.BgReading;
 import info.nightscout.androidaps.interfaces.Constraint;
 import info.nightscout.androidaps.interfaces.PumpInterface;
+import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
 import info.nightscout.utils.DecimalFormatter;
 
@@ -26,9 +26,9 @@ import info.nightscout.utils.DecimalFormatter;
  * Created by mike on 09.06.2016.
  */
 public class APSResult {
-    private static Logger log = LoggerFactory.getLogger(APSResult.class);
+    private static Logger log = LoggerFactory.getLogger(L.APS);
 
-    public Date date;
+    public long date = 0;
     public String reason;
     public double rate;
     public int duration;
@@ -52,23 +52,23 @@ public class APSResult {
             String ret;
             // rate
             if (rate == 0 && duration == 0)
-                ret = MainApp.sResources.getString(R.string.canceltemp) + "\n";
+                ret = MainApp.gs(R.string.canceltemp) + "\n";
             else if (rate == -1)
-                ret = MainApp.sResources.getString(R.string.let_temp_basal_run) + "\n";
+                ret = MainApp.gs(R.string.let_temp_basal_run) + "\n";
             else
-                ret = MainApp.sResources.getString(R.string.rate) + ": " + DecimalFormatter.to2Decimal(rate) + " U/h " +
+                ret = MainApp.gs(R.string.rate) + ": " + DecimalFormatter.to2Decimal(rate) + " U/h " +
                         "(" + DecimalFormatter.to2Decimal(rate / pump.getBaseBasalRate() * 100) + "%) \n" +
-                        MainApp.sResources.getString(R.string.duration) + ": " + DecimalFormatter.to2Decimal(duration) + " min\n";
+                        MainApp.gs(R.string.duration) + ": " + DecimalFormatter.to2Decimal(duration) + " min\n";
 
             // smb
             if (smb != 0)
                 ret += ("SMB: " + DecimalFormatter.toPumpSupportedBolus(smb) + " U\n");
 
             // reason
-            ret += MainApp.sResources.getString(R.string.reason) + ": " + reason;
+            ret += MainApp.gs(R.string.reason) + ": " + reason;
             return ret;
         } else
-            return MainApp.sResources.getString(R.string.nochangerequested);
+            return MainApp.gs(R.string.nochangerequested);
     }
 
     public Spanned toSpanned() {
@@ -77,23 +77,23 @@ public class APSResult {
             String ret;
             // rate
             if (rate == 0 && duration == 0)
-                ret = MainApp.sResources.getString(R.string.canceltemp) + "<br>";
+                ret = MainApp.gs(R.string.canceltemp) + "<br>";
             else if (rate == -1)
-                ret = MainApp.sResources.getString(R.string.let_temp_basal_run) + "<br>";
+                ret = MainApp.gs(R.string.let_temp_basal_run) + "<br>";
             else
-                ret = "<b>" + MainApp.sResources.getString(R.string.rate) + "</b>: " + DecimalFormatter.to2Decimal(rate) + " U/h " +
+                ret = "<b>" + MainApp.gs(R.string.rate) + "</b>: " + DecimalFormatter.to2Decimal(rate) + " U/h " +
                         "(" + DecimalFormatter.to2Decimal(rate / pump.getBaseBasalRate() * 100) + "%) <br>" +
-                        "<b>" + MainApp.sResources.getString(R.string.duration) + "</b>: " + DecimalFormatter.to2Decimal(duration) + " min<br>";
+                        "<b>" + MainApp.gs(R.string.duration) + "</b>: " + DecimalFormatter.to2Decimal(duration) + " min<br>";
 
             // smb
             if (smb != 0)
                 ret += ("<b>" + "SMB" + "</b>: " + DecimalFormatter.toPumpSupportedBolus(smb) + " U<br>");
 
             // reason
-            ret += "<b>" + MainApp.sResources.getString(R.string.reason) + "</b>: " + reason.replace("<", "&lt;").replace(">", "&gt;");
+            ret += "<b>" + MainApp.gs(R.string.reason) + "</b>: " + reason.replace("<", "&lt;").replace(">", "&gt;");
             return Html.fromHtml(ret);
         } else
-            return Html.fromHtml(MainApp.sResources.getString(R.string.nochangerequested));
+            return Html.fromHtml(MainApp.gs(R.string.nochangerequested));
     }
 
     public APSResult() {
@@ -133,8 +133,8 @@ public class APSResult {
     public List<BgReading> getPredictions() {
         List<BgReading> array = new ArrayList<>();
         try {
-            long startTime = date.getTime();
-            if (json.has("predBGs")) {
+            long startTime = date;
+            if (json != null && json.has("predBGs")) {
                 JSONObject predBGs = json.getJSONObject("predBGs");
                 if (predBGs.has("IOB")) {
                     JSONArray iob = predBGs.getJSONArray("IOB");
@@ -196,8 +196,8 @@ public class APSResult {
     public long getLatestPredictionsTime() {
         long latest = 0;
         try {
-            long startTime = date != null ? date.getTime() : 0;
-            if (json.has("predBGs")) {
+            long startTime = date;
+            if (json != null && json.has("predBGs")) {
                 JSONObject predBGs = json.getJSONObject("predBGs");
                 if (predBGs.has("IOB")) {
                     JSONArray iob = predBGs.getJSONArray("IOB");
