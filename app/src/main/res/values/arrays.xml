@@ -12,6 +12,7 @@
 
     <string-array name="languagesArray">
         <item>@string/en_lang</item>
+        <item>@string/af_lang</item>
         <item>@string/bg_lang</item>
         <item>@string/cs_lang</item>
         <item>@string/de_lang</item>
@@ -22,6 +23,7 @@
         <item>@string/el_lang</item>
         <item>@string/it_lang</item>
         <item>@string/ko_lang</item>
+        <item>@string/pt_lang</item>
         <item>@string/ro_lang</item>
         <item>@string/ru_lang</item>
         <item>@string/sk_lang</item>
@@ -31,6 +33,7 @@
     </string-array>
     <string-array name="languagesValues" translatable="false">
         <item>en</item>
+        <item>af</item>
         <item>bg</item>
         <item>cs</item>
         <item>de</item>
@@ -41,6 +44,7 @@
         <item>el</item>
         <item>it</item>
         <item>ko</item>
+        <item>pt</item>
         <item>ro</item>
         <item>ru</item>
         <item>sk</item>

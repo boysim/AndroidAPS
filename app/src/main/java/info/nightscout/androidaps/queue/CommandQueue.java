@@ -245,7 +245,7 @@ public class CommandQueue {
         }
         removeAll(Command.CommandType.BOLUS);
         removeAll(Command.CommandType.SMB_BOLUS);
-        ConfigBuilderPlugin.getActivePump().stopBolusDelivering();
+        ConfigBuilderPlugin.getPlugin().getActivePump().stopBolusDelivering();
     }
 
     // returns true if command is queued
@@ -298,7 +298,7 @@ public class CommandQueue {
             return false;
         }
 
-        Double rateAfterConstraints = MainApp.getConstraintChecker().applyBolusConstraints(new Constraint<>(insulin)).value();
+        Double rateAfterConstraints = MainApp.getConstraintChecker().applyExtendedBolusConstraints(new Constraint<>(insulin)).value();
 
         // remove all unfinished
         removeAll(Command.CommandType.EXTENDEDBOLUS);
@@ -369,7 +369,7 @@ public class CommandQueue {
 
         // Compare with pump limits
         Profile.BasalValue[] basalValues = profile.getBasalValues();
-        PumpInterface pump = ConfigBuilderPlugin.getActivePump();
+        PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
 
         for (Profile.BasalValue basalValue : basalValues) {
             if (basalValue.value < pump.getPumpDescription().basalMinimumRate) {
@@ -508,7 +508,7 @@ public class CommandQueue {
     }
 
     public boolean isThisProfileSet(Profile profile) {
-        PumpInterface activePump = ConfigBuilderPlugin.getActivePump();
+        PumpInterface activePump = ConfigBuilderPlugin.getPlugin().getActivePump();
         Profile current = ProfileFunctions.getInstance().getProfile();
         if (activePump != null && current != null) {
             boolean result = activePump.isThisProfileSet(profile);

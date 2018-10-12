@@ -60,7 +60,6 @@ import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.PumpHi
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.PumpHistoryRequest;
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.Tdd;
 import info.nightscout.androidaps.plugins.PumpCommon.defs.PumpType;
-import info.nightscout.androidaps.plugins.PumpCommon.utils.PumpUtil;
 import info.nightscout.androidaps.plugins.Treatments.Treatment;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.utils.DateUtil;
@@ -136,7 +135,7 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
                 .description(R.string.description_pump_combo)
         );
         ruffyScripter = new RuffyScripter(MainApp.instance().getApplicationContext());
-        PumpUtil.setPumpDescription(pumpDescription, PumpType.getByDescription("Accu-Chek Combo"));
+        pumpDescription.setPumpDescription(PumpType.AccuChekCombo);
     }
 
     public ComboPump getPump() {
@@ -899,7 +898,7 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
                             Notification.URGENT);
                     n.soundId = R.raw.alarm;
                     MainApp.bus().post(new EventNewNotification(n));
-                    ConfigBuilderPlugin.getCommandQueue().cancelTempBasal(true, null);
+                    ConfigBuilderPlugin.getPlugin().getCommandQueue().cancelTempBasal(true, null);
                 }
                 updateLocalData(commandResult);
             }
@@ -1078,7 +1077,7 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
                 n.soundId = R.raw.alarm;
                 MainApp.bus().post(new EventNewNotification(n));
                 violationWarningRaisedForBolusAt = lowSuspendOnlyLoopEnforcedUntil;
-                ConfigBuilderPlugin.getCommandQueue().cancelTempBasal(true, null);
+                ConfigBuilderPlugin.getPlugin().getCommandQueue().cancelTempBasal(true, null);
             }
         }
     }

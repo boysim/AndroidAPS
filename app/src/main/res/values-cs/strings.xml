@@ -897,6 +897,7 @@
   <string name="basal_set_correctly">Bazál nastaven správně</string>
   <string name="limitingpercentrate">Bazál omezen na %1$d%%: %2$s</string>
   <string name="limitingbolus">Bolus omezen na %1$.1f U: %2$s</string>
+  <string name="limitingextendedbolus">Prodloužený bolus omezen na %1$.1f U: %2$s</string>
   <string name="limitingmaxiob">Max IOB omezeno na %1$.1f U: %2$s</string>
   <string name="limitingcarbs">Sacharidy omezeny na %1$d g: %2$s</string>
   <string name="limitingiob">IOB omezeno na %1$.1f U: %2$s</string>
@@ -951,7 +952,7 @@
   <string name="virtualpump_type">Typ virtuální pumpy</string>
   <string name="virtualpump_definition">Definice pumpy</string>
   <string name="virtualpump_pump_def">Bolus: Krok =%1$s\nProdl. bolus: [Krok=%2$s, Délka=%3$smin-%4$sh]\nBazál: Krok=%5$s\nDoč. bazál: %6$s (%7$s), Délka=%8$smin-%9$sh\n%10$s</string>
-  <string name="virtualpump_pump_def_extended_note">* Rozdílné hodnoty podle rozsahu nejsou podporovány.</string>
+  <string name="virtualpump_pump_def_extended_note">* Pouze diskrétní hodnoty a ne rozsahy jsou podporovány pro bazál/bolus ve virtuální pumpě.</string>
   <string name="ns_autobackfill_title">Doplňování glykémií z NS</string>
   <string name="wear_wizard_settings">Nastavení wizardu</string>
   <string name="wear_wizard_settings_summary">Kalkulace použité ve výsledku wizardu:</string>
@@ -1047,6 +1048,8 @@
   <string name="commanderror">Chyba příkazu</string>
   <string name="speederror">Chyba rychlosti</string>
   <string name="insulinlimitviolation">Překročen limit inzulínu</string>
+  <string name="loop_openmode_min_change">Minimální změna pro výzvu [%]</string>
+  <string name="loop_openmode_min_change_summary">Smyčka vytvoří novou žádost o změnu pouze v případě, že změna je větší než tato hodnota. Výchozí hodnota je 20 %</string>
   <plurals name="objective_days">
     <item quantity="one">%1$d den</item>
     <item quantity="few">%1$d dnů</item>

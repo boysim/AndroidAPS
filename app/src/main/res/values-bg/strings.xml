@@ -641,7 +641,7 @@
   <string name="date">Дата</string>
   <string name="invalid">НЕВАЛИДНО</string>
   <string name="waitingforpairing">Очаква сдвояване с помпа</string>
-  <string name="pairingok">Сдвоени</string>
+  <string name="pairingok">Сдвояване - ОК</string>
   <string name="pairingtimedout">Времето за сдвояване изтече</string>
   <string name="pairing">СДВОЯВАНЕ</string>
   <string name="danars_nodeviceavailable">Все още устройството не е намерено</string>
@@ -897,6 +897,7 @@
   <string name="basal_set_correctly">Базалът е зададен коректно</string>
   <string name="limitingpercentrate">Ограничаване на максималната процентна стойност до %1$d%% поради %2$s</string>
   <string name="limitingbolus">Ограничаване на болус до %1$.1f Е поради %2$s</string>
+  <string name="limitingextendedbolus">Ограничение на удължен болус до %1$.1f Е поради %2$s</string>
   <string name="limitingmaxiob">Ограничаване на макс. IOB до %1$.1f Е поради %2$s</string>
   <string name="limitingcarbs">Ограничаване на въглехидрати до %1$d гр. поради %2$s</string>
   <string name="limitingiob">Ограничаване на IOB до %1$.1f Е поради %2$s</string>
@@ -951,7 +952,7 @@
   <string name="virtualpump_type">Виртуална помпа тип</string>
   <string name="virtualpump_definition">Описание на помпата</string>
   <string name="virtualpump_pump_def">Болус: Стъпка =%1$s\Удължен болус: [стъпка =%2$s, продължителност =%3$smin -%4$sh] \nБазал: стъпка =%5$s\ nTBR: %6$s (от %7$s), продължителност =%8$sмин -%9$sh\n%10$s</string>
-  <string name="virtualpump_pump_def_extended_note">* Диапазонни стойности за базал/болус не се поддържат от Виртиална Помпа.</string>
+  <string name="virtualpump_pump_def_extended_note">* Само конкретни стойности! Диапазони не се поддържат за базал/болус при виртуална помпа.</string>
   <string name="ns_autobackfill_title">Изтегляне КЗ от Найтскаут</string>
   <string name="wear_wizard_settings">Настройки на съветник</string>
   <string name="wear_wizard_settings_summary">Изчисления, включени в резултата на съветника:</string>
@@ -1048,6 +1049,8 @@
   <string name="commanderror">Грешка при команда</string>
   <string name="speederror">Скорост грешка</string>
   <string name="insulinlimitviolation">Нарушение на макс дневен инсулин</string>
+  <string name="loop_openmode_min_change">Минимална стойност за промяна [%]</string>
+  <string name="loop_openmode_min_change_summary">AndroidAPS ще покаже запитването за промяна на базала само ако е по-голямо от тази стойност.(Стандартно 20%)</string>
   <plurals name="objective_days">
     <item quantity="one">%1$d дeн</item>
     <item quantity="other">%1$d дни</item>
