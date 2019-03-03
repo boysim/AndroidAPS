@@ -1,7 +1,5 @@
 package info.nightscout.androidaps.data;
 
-import com.squareup.otto.Bus;
-
 import junit.framework.Assert;
 
 import org.json.JSONObject;
@@ -14,17 +12,15 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import info.AAPSMocker;
 import info.nightscout.androidaps.Constants;
 import info.nightscout.androidaps.MainApp;
-import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.interfaces.PumpInterface;
-import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
-import info.nightscout.androidaps.plugins.PumpVirtual.VirtualPumpPlugin;
-import info.nightscout.utils.FabricPrivacy;
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.pump.virtual.VirtualPumpPlugin;
+import info.nightscout.androidaps.utils.FabricPrivacy;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -137,7 +133,7 @@ public class ProfileTest {
                         "03:00    110.0 mmol/U", p.getIsfList());
 
         // Test hour alignment
-        MainApp.getConfigBuilder().getActivePump().getPumpDescription().is30minBasalRatesCapable = false;
+        ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().is30minBasalRatesCapable = false;
         ((AAPSMocker.MockedBus) MainApp.bus()).notificationSent = false;
         p = new Profile(new JSONObject(notAllignedBasalValidProfile), 100, 0);
         p.isValid("Test");
@@ -151,7 +147,7 @@ public class ProfileTest {
         AAPSMocker.mockStrings();
         AAPSMocker.prepareMockedBus();
 
-        when(MainApp.getConfigBuilder().getActivePump()).thenReturn(pump);
+        when(ConfigBuilderPlugin.getPlugin().getActivePump()).thenReturn(pump);
 
         PowerMockito.mockStatic(FabricPrivacy.class);
 //        PowerMockito.doNothing().when(FabricPrivacy.log(""));

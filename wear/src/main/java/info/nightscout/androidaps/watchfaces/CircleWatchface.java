@@ -573,7 +573,8 @@ public class CircleWatchface extends WatchFace implements SharedPreferences.OnSh
             double high = dataMap.getDouble("high");
             double low = dataMap.getDouble("low");
             long timestamp = dataMap.getLong("timestamp");
-            bgDataList.add(new BgWatchData(sgv, high, low, timestamp));
+            int color = dataMap.getInt("color", 0);
+            bgDataList.add(new BgWatchData(sgv, high, low, timestamp, color));
         } else if (!sharedPrefs.getBoolean("animation", false)) {
             // don't load history at once if animations are set (less resource consumption)
             Log.d("addToWatchSet", "entries.size(): " + entries.size());
@@ -583,12 +584,13 @@ public class CircleWatchface extends WatchFace implements SharedPreferences.OnSh
                 double high = entry.getDouble("high");
                 double low = entry.getDouble("low");
                 long timestamp = entry.getLong("timestamp");
-                bgDataList.add(new BgWatchData(sgv, high, low, timestamp));
+                int color = entry.getInt("color", 0);
+                bgDataList.add(new BgWatchData(sgv, high, low, timestamp, color));
             }
         } else
 
             Log.d("addToWatchSet", "start removing bgDataList.size(): " + bgDataList.size());
-        HashSet removeSet = new HashSet();
+        HashSet<BgWatchData> removeSet = new HashSet<>();
         double threshold = (System.currentTimeMillis() - (1000 * 60 * 5 * holdInMemory()));
         for (BgWatchData data : bgDataList) {
             if (data.timestamp < threshold) {

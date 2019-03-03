@@ -2,7 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".plugins.PumpCombo.ComboFragment">
+    android:paddingTop="5dp"
+    tools:context=".plugins.pump.combo.ComboFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -488,7 +489,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <info.nightscout.utils.SingleClickButton
+            <info.nightscout.androidaps.utils.SingleClickButton
                 android:id="@+id/combo_refresh_button"
                 style="@style/ButtonSmallFontStyle"
                 android:layout_width="match_parent"

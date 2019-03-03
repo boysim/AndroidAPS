@@ -2,8 +2,6 @@ package info.nightscout.androidaps.data;
 
 import android.content.Context;
 
-import com.rits.cloning.Cloner;
-
 import org.json.JSONObject;
 
 import java.util.Date;
@@ -17,6 +15,7 @@ import info.nightscout.androidaps.db.Source;
 
 public class DetailedBolusInfo {
     public long date = System.currentTimeMillis();
+    public long lastKnownBolusTime;
     public String eventType = CareportalEvent.MEALBOLUS;
     public double insulin = 0;
     public double carbs = 0;
@@ -55,6 +54,7 @@ public class DetailedBolusInfo {
     @Override
     public String toString() {
         return new Date(date).toLocaleString() +
+                " date: " + date +
                 " insulin: " + insulin +
                 " carbs: " + carbs +
                 " isValid: " + isValid +

@@ -1,8 +1,5 @@
 package info.nightscout.androidaps.data;
 
-import android.text.Html;
-import android.text.Spanned;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -10,11 +7,12 @@ import org.slf4j.LoggerFactory;
 
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
-import info.nightscout.utils.DecimalFormatter;
-import info.nightscout.utils.Round;
+import info.nightscout.androidaps.logging.L;
+import info.nightscout.androidaps.utils.DecimalFormatter;
+import info.nightscout.androidaps.utils.Round;
 
 public class PumpEnactResult {
-    private static Logger log = LoggerFactory.getLogger(PumpEnactResult.class);
+    private static Logger log = LoggerFactory.getLogger(L.APS);
 
     public boolean success = false;    // request was processed successfully (but possible no change was needed)
     public boolean enacted = false;    // request was processed successfully and change has been made
@@ -107,7 +105,7 @@ public class PumpEnactResult {
             if (bolusDelivered > 0) {
                 ret += "\n" + MainApp.gs(R.string.enacted) + ": " + enacted;
                 ret += "\n" + MainApp.gs(R.string.comment) + ": " + comment;
-                ret += "\n" + MainApp.gs(R.string.smb_shortname)
+                ret += "\n" + MainApp.gs(R.string.configbuilder_insulin)
                         + ": " + bolusDelivered + " " + MainApp.gs(R.string.insulin_unit_shortname);
             } else if (isTempCancel) {
                 ret += "\n" + MainApp.gs(R.string.enacted) + ": " + enacted;

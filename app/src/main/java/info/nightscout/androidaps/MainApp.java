@@ -5,11 +5,11 @@ import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.support.annotation.PluralsRes;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.squareup.otto.Bus;
 import com.squareup.otto.LoggingBus;
@@ -23,66 +23,73 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
 
-import ch.qos.logback.classic.LoggerContext;
-import info.nightscout.androidaps.Services.Intents;
 import info.nightscout.androidaps.data.ConstraintChecker;
 import info.nightscout.androidaps.db.DatabaseHelper;
 import info.nightscout.androidaps.interfaces.PluginBase;
 import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.PumpInterface;
-import info.nightscout.androidaps.plugins.Actions.ActionsFragment;
-import info.nightscout.androidaps.plugins.Careportal.CareportalPlugin;
-import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
-import info.nightscout.androidaps.plugins.ConstraintsObjectives.ObjectivesPlugin;
-import info.nightscout.androidaps.plugins.ConstraintsSafety.SafetyPlugin;
-import info.nightscout.androidaps.plugins.Food.FoodPlugin;
-import info.nightscout.androidaps.plugins.Insulin.InsulinOrefFreePeakPlugin;
-import info.nightscout.androidaps.plugins.Insulin.InsulinOrefRapidActingPlugin;
-import info.nightscout.androidaps.plugins.Insulin.InsulinOrefUltraRapidActingPlugin;
-import info.nightscout.androidaps.plugins.IobCobCalculator.IobCobCalculatorPlugin;
-import info.nightscout.androidaps.plugins.Loop.LoopPlugin;
-import info.nightscout.androidaps.plugins.NSClientInternal.NSClientPlugin;
-import info.nightscout.androidaps.plugins.NSClientInternal.receivers.AckAlarmReceiver;
-import info.nightscout.androidaps.plugins.OpenAPSAMA.OpenAPSAMAPlugin;
-import info.nightscout.androidaps.plugins.OpenAPSMA.OpenAPSMAPlugin;
-import info.nightscout.androidaps.plugins.OpenAPSSMB.OpenAPSSMBPlugin;
-import info.nightscout.androidaps.plugins.Overview.OverviewPlugin;
-import info.nightscout.androidaps.plugins.Overview.events.EventNewNotification;
-import info.nightscout.androidaps.plugins.Overview.notifications.Notification;
-import info.nightscout.androidaps.plugins.Persistentnotification.PersistentNotificationPlugin;
-import info.nightscout.androidaps.plugins.ProfileLocal.LocalProfilePlugin;
-import info.nightscout.androidaps.plugins.ProfileNS.NSProfilePlugin;
-import info.nightscout.androidaps.plugins.ProfileSimple.SimpleProfilePlugin;
-import info.nightscout.androidaps.plugins.PumpCombo.ComboPlugin;
-import info.nightscout.androidaps.plugins.PumpDanaR.DanaRPlugin;
-import info.nightscout.androidaps.plugins.PumpDanaRKorean.DanaRKoreanPlugin;
-import info.nightscout.androidaps.plugins.PumpDanaRS.DanaRSPlugin;
-import info.nightscout.androidaps.plugins.PumpDanaRv2.DanaRv2Plugin;
-import info.nightscout.androidaps.plugins.PumpInsight.InsightPlugin;
-import info.nightscout.androidaps.plugins.PumpMDI.MDIPlugin;
-import info.nightscout.androidaps.plugins.PumpVirtual.VirtualPumpPlugin;
-import info.nightscout.androidaps.plugins.SensitivityAAPS.SensitivityAAPSPlugin;
-import info.nightscout.androidaps.plugins.SensitivityOref0.SensitivityOref0Plugin;
-import info.nightscout.androidaps.plugins.SensitivityWeightedAverage.SensitivityWeightedAveragePlugin;
-import info.nightscout.androidaps.plugins.SmsCommunicator.SmsCommunicatorPlugin;
-import info.nightscout.androidaps.plugins.Source.SourceDexcomG5Plugin;
-import info.nightscout.androidaps.plugins.Source.SourceGlimpPlugin;
-import info.nightscout.androidaps.plugins.Source.SourceMM640gPlugin;
-import info.nightscout.androidaps.plugins.Source.SourceNSClientPlugin;
-import info.nightscout.androidaps.plugins.Source.SourceXdripPlugin;
-import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
-import info.nightscout.androidaps.plugins.Wear.WearPlugin;
-import info.nightscout.androidaps.plugins.XDripStatusline.StatuslinePlugin;
+import info.nightscout.androidaps.logging.L;
+import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin;
+import info.nightscout.androidaps.plugins.aps.openAPSAMA.OpenAPSAMAPlugin;
+import info.nightscout.androidaps.plugins.aps.openAPSMA.OpenAPSMAPlugin;
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin;
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.constraints.dstHelper.DstHelperPlugin;
+import info.nightscout.androidaps.plugins.constraints.objectives.ObjectivesPlugin;
+import info.nightscout.androidaps.plugins.constraints.safety.SafetyPlugin;
+import info.nightscout.androidaps.plugins.general.actions.ActionsFragment;
+import info.nightscout.androidaps.plugins.general.careportal.CareportalPlugin;
+import info.nightscout.androidaps.plugins.general.food.FoodPlugin;
+import info.nightscout.androidaps.plugins.general.maintenance.LoggerUtils;
+import info.nightscout.androidaps.plugins.general.maintenance.MaintenancePlugin;
+import info.nightscout.androidaps.plugins.general.nsclient.NSClientPlugin;
+import info.nightscout.androidaps.plugins.general.nsclient.NSUpload;
+import info.nightscout.androidaps.plugins.general.nsclient.receivers.AckAlarmReceiver;
+import info.nightscout.androidaps.plugins.general.nsclient.receivers.DBAccessReceiver;
+import info.nightscout.androidaps.plugins.general.overview.OverviewPlugin;
+import info.nightscout.androidaps.plugins.general.persistentNotification.PersistentNotificationPlugin;
+import info.nightscout.androidaps.plugins.general.smsCommunicator.SmsCommunicatorPlugin;
+import info.nightscout.androidaps.plugins.general.wear.WearPlugin;
+import info.nightscout.androidaps.plugins.general.xdripStatusline.StatuslinePlugin;
+import info.nightscout.androidaps.plugins.insulin.InsulinOrefFreePeakPlugin;
+import info.nightscout.androidaps.plugins.insulin.InsulinOrefRapidActingPlugin;
+import info.nightscout.androidaps.plugins.insulin.InsulinOrefUltraRapidActingPlugin;
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin;
+import info.nightscout.androidaps.plugins.profile.local.LocalProfilePlugin;
+import info.nightscout.androidaps.plugins.profile.ns.NSProfilePlugin;
+import info.nightscout.androidaps.plugins.profile.simple.SimpleProfilePlugin;
+import info.nightscout.androidaps.plugins.pump.combo.ComboPlugin;
+import info.nightscout.androidaps.plugins.pump.danaR.DanaRPlugin;
+import info.nightscout.androidaps.plugins.pump.danaRKorean.DanaRKoreanPlugin;
+import info.nightscout.androidaps.plugins.pump.danaRS.DanaRSPlugin;
+import info.nightscout.androidaps.plugins.pump.danaRv2.DanaRv2Plugin;
+import info.nightscout.androidaps.plugins.pump.insight.LocalInsightPlugin;
+import info.nightscout.androidaps.plugins.pump.mdi.MDIPlugin;
+import info.nightscout.androidaps.plugins.pump.virtual.VirtualPumpPlugin;
+import info.nightscout.androidaps.plugins.sensitivity.SensitivityAAPSPlugin;
+import info.nightscout.androidaps.plugins.sensitivity.SensitivityOref0Plugin;
+import info.nightscout.androidaps.plugins.sensitivity.SensitivityOref1Plugin;
+import info.nightscout.androidaps.plugins.sensitivity.SensitivityWeightedAveragePlugin;
+import info.nightscout.androidaps.plugins.source.SourceDexcomG5Plugin;
+import info.nightscout.androidaps.plugins.source.SourceDexcomG6Plugin;
+import info.nightscout.androidaps.plugins.source.SourceEversensePlugin;
+import info.nightscout.androidaps.plugins.source.SourceGlimpPlugin;
+import info.nightscout.androidaps.plugins.source.SourceMM640gPlugin;
+import info.nightscout.androidaps.plugins.source.SourceNSClientPlugin;
+import info.nightscout.androidaps.plugins.source.SourcePoctechPlugin;
+import info.nightscout.androidaps.plugins.source.SourceTomatoPlugin;
+import info.nightscout.androidaps.plugins.source.SourceXdripPlugin;
+import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.receivers.DataReceiver;
 import info.nightscout.androidaps.receivers.KeepAliveReceiver;
 import info.nightscout.androidaps.receivers.NSAlarmReceiver;
-import info.nightscout.utils.FabricPrivacy;
-import info.nightscout.utils.NSUpload;
+import info.nightscout.androidaps.services.Intents;
+import info.nightscout.androidaps.utils.FabricPrivacy;
 import io.fabric.sdk.android.Fabric;
 
 
 public class MainApp extends Application {
-    private static Logger log = LoggerFactory.getLogger(MainApp.class);
+    private static Logger log = LoggerFactory.getLogger(L.CORE);
     private static KeepAliveReceiver keepAliveReceiver;
 
     private static Bus sBus;
@@ -90,7 +97,6 @@ public class MainApp extends Application {
     public static Resources sResources;
 
     private static DatabaseHelper sDatabaseHelper = null;
-    private static ConfigBuilderPlugin sConfigBuilder = null;
     private static ConstraintChecker sConstraintsChecker = null;
 
     private static ArrayList<PluginBase> pluginsList = null;
@@ -98,6 +104,7 @@ public class MainApp extends Application {
     private static DataReceiver dataReceiver = new DataReceiver();
     private static NSAlarmReceiver alarmReciever = new NSAlarmReceiver();
     private static AckAlarmReceiver ackAlarmReciever = new AckAlarmReceiver();
+    private static DBAccessReceiver dbAccessReciever = new DBAccessReceiver();
     private LocalBroadcastManager lbm;
 
     public static boolean devBranch;
@@ -106,6 +113,7 @@ public class MainApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        log.debug("onCreate");
         sInstance = this;
         sResources = getResources();
         sConstraintsChecker = new ConstraintChecker(this);
@@ -118,7 +126,7 @@ public class MainApp extends Application {
                 Crashlytics.setString("BUILDVERSION", BuildConfig.BUILDVERSION);
             }
         } catch (Exception e) {
-            android.util.Log.e("ANDROIDAPS", "Error with Fabric init! " + e);
+            log.error("Error with Fabric init! " + e);
         }
 
         JodaTimeAndroid.init(this);
@@ -126,13 +134,13 @@ public class MainApp extends Application {
         log.info("Version: " + BuildConfig.VERSION_NAME);
         log.info("BuildVersion: " + BuildConfig.BUILDVERSION);
 
-        String extFilesDir = this.getLogDirectory();
+        String extFilesDir = LoggerUtils.getLogDirectory();
         File engineeringModeSemaphore = new File(extFilesDir, "engineering_mode");
 
         engineeringMode = engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile();
         devBranch = BuildConfig.VERSION.contains("dev");
 
-        sBus = Config.logEvents ? new LoggingBus(ThreadEnforcer.ANY) : new Bus(ThreadEnforcer.ANY);
+        sBus = L.isEnabled(L.EVENTS) && devBranch ? new LoggingBus(ThreadEnforcer.ANY) : new Bus(ThreadEnforcer.ANY);
 
         registerLocalBroadcastReceiver();
 
@@ -148,14 +156,14 @@ public class MainApp extends Application {
             pluginsList.add(SensitivityOref0Plugin.getPlugin());
             pluginsList.add(SensitivityAAPSPlugin.getPlugin());
             pluginsList.add(SensitivityWeightedAveragePlugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRPlugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRKoreanPlugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRv2Plugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRSPlugin.getPlugin());
+            pluginsList.add(SensitivityOref1Plugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRKoreanPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRv2Plugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRSPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(LocalInsightPlugin.getPlugin());
             pluginsList.add(CareportalPlugin.getPlugin());
-            if (Config.HWPUMPS && engineeringMode)
-                pluginsList.add(InsightPlugin.getPlugin()); // <-- Enable Insight plugin here
-            if (Config.HWPUMPS) pluginsList.add(ComboPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(ComboPlugin.getPlugin());
             if (Config.MDI) pluginsList.add(MDIPlugin.getPlugin());
             pluginsList.add(VirtualPumpPlugin.getPlugin());
             if (Config.APS) pluginsList.add(LoopPlugin.getPlugin());
@@ -168,46 +176,38 @@ public class MainApp extends Application {
             pluginsList.add(TreatmentsPlugin.getPlugin());
             if (Config.SAFETY) pluginsList.add(SafetyPlugin.getPlugin());
             if (Config.APS) pluginsList.add(ObjectivesPlugin.getPlugin());
-            if (!Config.NSCLIENT && !Config.G5UPLOADER)
-                pluginsList.add(SourceXdripPlugin.getPlugin());
-            if (!Config.G5UPLOADER)
-                pluginsList.add(SourceNSClientPlugin.getPlugin());
-            if (!Config.NSCLIENT && !Config.G5UPLOADER)
-                pluginsList.add(SourceMM640gPlugin.getPlugin());
-            if (!Config.NSCLIENT && !Config.G5UPLOADER)
-                pluginsList.add(SourceGlimpPlugin.getPlugin());
-            if (!Config.NSCLIENT)
-                pluginsList.add(SourceDexcomG5Plugin.getPlugin());
+            pluginsList.add(SourceXdripPlugin.getPlugin());
+            pluginsList.add(SourceNSClientPlugin.getPlugin());
+            pluginsList.add(SourceMM640gPlugin.getPlugin());
+            pluginsList.add(SourceGlimpPlugin.getPlugin());
+            pluginsList.add(SourceDexcomG5Plugin.getPlugin());
+            pluginsList.add(SourceDexcomG6Plugin.getPlugin());
+            pluginsList.add(SourcePoctechPlugin.getPlugin());
+            pluginsList.add(SourceTomatoPlugin.getPlugin());
+            pluginsList.add(SourceEversensePlugin.getPlugin());
             if (Config.SMSCOMMUNICATORENABLED) pluginsList.add(SmsCommunicatorPlugin.getPlugin());
             pluginsList.add(FoodPlugin.getPlugin());
 
             pluginsList.add(WearPlugin.initPlugin(this));
             pluginsList.add(StatuslinePlugin.initPlugin(this));
-            pluginsList.add(new PersistentNotificationPlugin(this));
+            pluginsList.add(PersistentNotificationPlugin.getPlugin());
             pluginsList.add(NSClientPlugin.getPlugin());
+            pluginsList.add(MaintenancePlugin.initPlugin(this));
 
-            pluginsList.add(sConfigBuilder = ConfigBuilderPlugin.getPlugin());
+            pluginsList.add(ConfigBuilderPlugin.getPlugin());
 
-            MainApp.getConfigBuilder().initialize();
+            pluginsList.add(DstHelperPlugin.getPlugin());
+
+            ConfigBuilderPlugin.getPlugin().initialize();
         }
+
         NSUpload.uploadAppStart();
 
-        if (Config.NSCLIENT)
-            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-NSClient"));
-        else if (Config.G5UPLOADER)
-            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-G5Uploader"));
-        else if (Config.PUMPCONTROL)
-            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-PumpControl"));
-        else if (MainApp.getConstraintChecker().isClosedLoopAllowed().value())
-            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-ClosedLoop"));
-        else
-            FabricPrivacy.getInstance().logCustom(new CustomEvent("AppStart-OpenLoop"));
-
-        final PumpInterface pump = ConfigBuilderPlugin.getActivePump();
+        final PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
         if (pump != null) {
             new Thread(() -> {
                 SystemClock.sleep(5000);
-                ConfigBuilderPlugin.getCommandQueue().readStatus("Initialization", null);
+                ConfigBuilderPlugin.getPlugin().getCommandQueue().readStatus("Initialization", null);
                 startKeepAliveService();
             }).start();
         }
@@ -236,6 +236,9 @@ public class MainApp extends Application {
 
         //register ack alarm
         lbm.registerReceiver(ackAlarmReciever, new IntentFilter(Intents.ACTION_ACK_ALARM));
+
+        //register dbaccess
+        lbm.registerReceiver(dbAccessReciever, new IntentFilter(Intents.ACTION_DATABASE));
     }
 
     private void startKeepAliveService() {
@@ -245,10 +248,25 @@ public class MainApp extends Application {
         }
     }
 
-
     public void stopKeepAliveService() {
         if (keepAliveReceiver != null)
             KeepAliveReceiver.cancelAlarm(this);
+    }
+
+    public static void subscribe(Object subscriber) {
+        try {
+            bus().register(subscriber);
+        } catch (IllegalArgumentException e) {
+            // already registered
+        }
+    }
+
+    public static void unsubscribe(Object subscriber) {
+        try {
+            bus().unregister(subscriber);
+        } catch (IllegalArgumentException e) {
+            // already unregistered
+        }
     }
 
     public static Bus bus() {
@@ -261,6 +279,10 @@ public class MainApp extends Application {
 
     public static String gs(int id, Object... args) {
         return sResources.getString(id, args);
+    }
+
+    public static String gq(@PluralsRes int id, int quantity, Object... args) {
+        return sResources.getQuantityString(id, quantity, args);
     }
 
     public static int gc(int id) {
@@ -280,10 +302,6 @@ public class MainApp extends Application {
             sDatabaseHelper.close();
             sDatabaseHelper = null;
         }
-    }
-
-    public static ConfigBuilderPlugin getConfigBuilder() {
-        return sConfigBuilder;
     }
 
     public static ConstraintChecker getConstraintChecker() {
@@ -366,18 +384,37 @@ public class MainApp extends Application {
     }
 
     public static boolean isEngineeringModeOrRelease() {
-        if (!BuildConfig.APS)
+        if (!Config.APS)
             return true;
         return engineeringMode || !devBranch;
     }
 
-    public String getLogDirectory() {
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        return lc.getProperty("EXT_FILES_DIR");
+    public static boolean isDev() {
+        return devBranch;
+    }
+
+    public static int getIcon() {
+        if (Config.NSCLIENT)
+            return R.mipmap.ic_yellowowl;
+        else if (Config.PUMPCONTROL)
+            return R.mipmap.ic_pumpcontrol;
+        else
+            return R.mipmap.ic_launcher;
+    }
+
+    public static int getNotificationIcon() {
+        if (Config.NSCLIENT)
+            return R.drawable.ic_notif_nsclient;
+        else if (Config.PUMPCONTROL)
+            return R.drawable.ic_notif_pumpcontrol;
+        else
+            return R.drawable.ic_notif_aaps;
     }
 
     @Override
     public void onTerminate() {
+        if (L.isEnabled(L.CORE))
+            log.debug("onTerminate");
         super.onTerminate();
         if (sDatabaseHelper != null) {
             sDatabaseHelper.close();
